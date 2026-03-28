@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import HowItWorks from "./components/HowItWorks";
 import DemoChat from "./components/DemoChat";
+import DemoAnalysis from "./components/DemoAnalysis";
+import Footer from "./components/Footer";
 
 export default function Home() {
   const router = useRouter();
@@ -35,7 +37,7 @@ export default function Home() {
           href={"/analyze"}
           className="bg-blue-600 px-5 py-2 rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
         >
-          🧠 Fix My Habits
+          🧠 Analyze My Habits
         </Link>
       </nav>
 
@@ -80,7 +82,7 @@ export default function Home() {
             href={"/analyze"}
             className="bg-blue-600 px-6 py-3 rounded-xl text-lg"
           >
-            🧠 Start Fixing
+            🧠 Analyze My Habits
           </Link>
 
           {/* 💬 SECONDARY CTA */}
@@ -131,7 +133,7 @@ export default function Home() {
       </motion.section>
 
       {/* LIVE EXAMPLE */}
-      <DemoChat />
+      <DemoAnalysis />
 
       {/* SEPARATOR */}
       <div className="h-px bg-gray-800 max-w-4xl mx-auto mt-20" />
@@ -175,8 +177,27 @@ export default function Home() {
           </motion.div>
         ))}
       </motion.section>
-      {/* HOW IT WORKS */}
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="pt-20"
+      >
+        <h2 className="text-center text-2xl font-semibold mb-6">
+          💬 Just talk it out
+        </h2>
+        <p className="text-center text-gray-400 mb-10">
+          Not ready for analysis? Start with a simple conversation.
+        </p>
+      </motion.section>
 
+      {/* LIVE CHAT EXAMPLE */}
+      <div className="flex justify-center items-center">
+        <DemoChat />
+      </div>
+
+      {/* HOW IT WORKS */}
       <div id="how-it-works">
         <HowItWorks />
       </div>
@@ -217,6 +238,7 @@ export default function Home() {
           🧠 Start Fixing
         </button>
       </div>
+      <Footer/>
     </div>
   );
 }

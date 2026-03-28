@@ -84,7 +84,7 @@ export default function ChatPage() {
           href={"/analyze"}
           className="bg-blue-600 px-5 py-2 rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
         >
-          🧠 Start Fixing
+          🧠 Analyze My Habits
         </Link>
       </nav>
 
@@ -162,7 +162,7 @@ export default function ChatPage() {
               </span>
             </div>
 
-            {msg.type === "bot" && messages[i]===msg && (
+            {msg.type === "bot" && messages[i] === msg && (
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={handleFollowUp}

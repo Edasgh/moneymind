@@ -1,35 +1,39 @@
 "use client";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, useInView } from "framer-motion";
+import { ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export default function DemoChat() {
   const fullText =
     "This sounds like impulse eating, not hunger. Try setting a ₹200 weekly cap first. What usually triggers it — stress or boredom? 🤔";
 
+  const router = useRouter();
   const [typedText, setTypedText] = useState("");
   const [showAI, setShowAI] = useState(false);
   const [thinking, setThinking] = useState(false);
   const [done, setDone] = useState(false);
 
+  // 👇 detect visibility
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
   useEffect(() => {
+    if (!isInView) return; // 🚫 don't start until visible
+
     let i = 0;
     let interval: NodeJS.Timeout;
 
-    // Step 1: show thinking
     const thinkingTimeout = setTimeout(() => {
       setThinking(true);
     }, 800);
 
-    // Step 2: show AI + typing
     const responseTimeout = setTimeout(() => {
       setThinking(false);
       setShowAI(true);
 
       interval = setInterval(() => {
         setTypedText(fullText.slice(0, i));
-
-        // 👇 dynamic speed (more human)
-        const speed = i < 40 ? 20 : 35;
 
         i++;
         if (i > fullText.length) {
@@ -44,15 +48,15 @@ export default function DemoChat() {
       clearTimeout(responseTimeout);
       if (interval) clearInterval(interval);
     };
-  }, []);
+  }, [isInView]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      transition={{ delay: 0.6 }}
-      whileHover={{ scale: 1.05, y: -5 }}
-      className="mt-16 w-72 absolute top-20 right-10 bg-gray-900 p-5 rounded-2xl border border-gray-800 text-left shadow-lg shadow-blue-500/10"
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6 }}
+      className="mt-5 w-140 bg-gray-900 p-5 rounded-2xl border border-gray-800 text-left shadow-lg shadow-blue-500/10 relative group"
     >
       {/* LABEL */}
       <p className="text-xs text-gray-500 mb-3">Live AI preview</p>
@@ -119,6 +123,13 @@ export default function DemoChat() {
           </p>
         </motion.div>
       )}
+      {/* Overlay */}
+      <div className="absolute bottom-0 left-0 right-0 rounded-b-2xl flex flex-col items-end justify-end px-4 py-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition duration-300">
+        <ChevronRight
+          onClick={() => router.push("/chat")}
+          className="text-white cursor-pointer"
+        />
+      </div>
     </motion.div>
   );
 }
