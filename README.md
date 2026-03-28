@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 MoneyMind
 
-## Getting Started
+**Fix your money habits, not just your budget.**
 
-First, run the development server:
+MoneyMind is an AI-powered behavioral finance app that helps users understand **why they spend**, not just **where they spend**. Instead of traditional budgeting tools, MoneyMind focuses on **habit change**, emotional triggers, and real-life decision patterns.
+
+---
+
+## 🚀 Features
+
+### 🧠 Behavior Analysis
+
+Understand the psychology behind your spending habits and identify hidden triggers like stress, boredom, or impulse.
+
+### 💬 AI Money Coach
+
+Chat with an intelligent AI that gives **real, practical, and honest advice** tailored to your situation.
+
+### ⚡ Real Impact Awareness
+
+See how small daily expenses can turn into **large long-term financial losses**.
+
+### 🔒 Privacy First
+
+* No login required
+* No data stored
+* Fully anonymous experience
+
+---
+
+## 🖥️ Tech Stack
+
+* **Frontend:** Next.js (App Router), React, Tailwind CSS
+* **Animations:** Framer Motion
+* **AI Integration:** Google Gemini API
+* **Deployment:** Vercel / Render
+
+---
+
+## 🧩 How It Works
+
+1. User shares a money habit or problem
+2. AI analyzes behavior patterns
+3. Provides actionable advice
+4. Asks follow-up questions for deeper insights
+
+---
+
+## 💡 Example
+
+**User:**
+I spend too much on food delivery
+
+**MoneyMind:**
+This sounds like impulse eating, not hunger. Try setting a ₹200 weekly cap first. What usually triggers it — stress or boredom? 🤔
+
+---
+
+## 🎯 Why MoneyMind?
+
+Most finance apps focus on:
+
+* Tracking expenses
+* Managing budgets
+
+MoneyMind focuses on:
+
+* Changing behavior
+* Understanding decisions
+* Building long-term habits
+
+---
+
+## 📦 Installation
 
 ```bash
+git clone https://github.com/edasgh/moneymind.git
+cd moneymind
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔑 Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file:
 
-## Learn More
+```env
+NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧪 Future Improvements
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* 🔥 AI personality modes (friendly / strict / brutal)
+* 📊 Habit tracking & streaks
+* 🧠 Personalized financial behavior profiles
+* 📈 Long-term savings visualization
+* 📱 Mobile-first enhancements
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🤝 Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Contributions are welcome!
+Feel free to fork the repo and submit a PR.
+
+---
+
+## 📜 License
+
+MIT License
+
+---
+
+## 🌟 Final Thought
+
+Most people don’t have a money problem —
+they have a **habit problem**.
+
+MoneyMind helps you fix that.

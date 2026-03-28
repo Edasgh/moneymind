@@ -1,65 +1,222 @@
-import Image from "next/image";
+"use client";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import HowItWorks from "./components/HowItWorks";
+import DemoChat from "./components/DemoChat";
 
 export default function Home() {
+  const router = useRouter();
+
+  const container = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0 },
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-linear-to-br from-[#0f172a] via-[#020617] to-black text-white">
+      {/* NAVBAR */}
+      <nav className="flex justify-between items-center p-6 max-w-6xl mx-auto">
+        <Link href={"/"} className="text-xl font-bold cursor-pointer">
+          🧠 MoneyMind
+        </Link>
+
+        {/* 👉 PRIMARY ACTION */}
+        <Link
+          href={"/analyze"}
+          className="bg-blue-600 px-5 py-2 rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
+        >
+          🧠 Fix My Habits
+        </Link>
+      </nav>
+
+      {/* HERO */}
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-center mt-30 px-6"
+      >
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-4xl md:text-6xl font-bold leading-tight"
+        >
+          Fix Your <span className="text-blue-500">Money Habits</span>
+          <br />
+          Not Just Your Knowledge
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-gray-400 mt-6 max-w-2xl mx-auto"
+        >
+          You don’t have a money problem — you have a habit problem.
+          <br />
+          And it’s quietly draining your bank account every month.
+        </motion.p>
+
+        {/* 👉 MAIN CTA SECTION */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mt-8 flex justify-center gap-4 flex-wrap"
+        >
+          {/* 🔥 PRIMARY CTA */}
+          <Link
+            href={"/analyze"}
+            className="bg-blue-600 px-6 py-3 rounded-xl text-lg"
+          >
+            🧠 Start Fixing
+          </Link>
+
+          {/* 💬 SECONDARY CTA */}
+          <Link
+            href={"/chat"}
+            className="bg-gray-800 px-6 py-3 rounded-xl text-lg"
+          >
+            💬 Get Instant Advice
+          </Link>
+        </motion.div>
+        {/* Other CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          {/* DEMO LINK */}
+          <Link
+            href={"/chat"}
+            className="text-sm text-blue-400 underline mt-3 block"
+          >
+            Try a sample conversation →
+          </Link>
+          {/* TRUST */}
+          <p className="text-xs text-gray-500 mt-4">
+            No login required • No data stored • 100% private
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+          {/* SOCIAL PROOF */}
+          <p className="text-xs text-gray-500 mt-2">
+            🔥 1,000+ habits analyzed this week
+          </p>
+        </motion.div>
+        {/* HOW BUTTON */}
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
+          onClick={() =>
+            document
+              .getElementById("how-it-works")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }
+          className="mt-6 bg-gray-800 px-5 py-2 rounded-xl text-sm hover:bg-gray-700"
+        >
+          👀 See How It Works
+        </motion.button>
+      </motion.section>
+
+      {/* LIVE EXAMPLE */}
+      <DemoChat />
+
+      {/* SEPARATOR */}
+      <div className="h-px bg-gray-800 max-w-4xl mx-auto mt-20" />
+
+      {/* WHO IT'S FOR */}
+      <p className="text-center text-gray-400 mt-12">
+        Built for people who know what to do… but still don’t do it.
+      </p>
+
+      {/* FEATURES */}
+      <motion.section
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        className="mt-12 px-6 max-w-6xl mx-auto grid md:grid-cols-3 gap-6"
+      >
+        {[
+          {
+            title: "🧠 Why You Overspend",
+            desc: "Identify emotional triggers behind Swiggy, Amazon & impulse buys.",
+          },
+          {
+            title: "💬 Talk It Out",
+            desc: "Confess your habits and get brutally honest AI feedback.",
+          },
+          {
+            title: "⚡ Real Cost of Habits",
+            desc: "See how small daily spends turn into ₹50,000+ yearly losses.",
+          },
+        ].map((f, i) => (
+          <motion.div
+            key={i}
+            variants={item}
+            whileHover={{ scale: 1.05, y: -5 }}
+            transition={{ type: "spring", stiffness: 200 }}
+            className="p-6 bg-gray-900 rounded-2xl border border-gray-800"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
+            <p className="text-gray-400">{f.desc}</p>
+          </motion.div>
+        ))}
+      </motion.section>
+      {/* HOW IT WORKS */}
+
+      <div id="how-it-works">
+        <HowItWorks />
+      </div>
+
+      {/* CTA */}
+      <section className="mt-28 text-center pb-20 px-6">
+        <h2 className="text-3xl font-bold mt-6 mb-4">
+          Start Improving Your Financial Habits Today
+        </h2>
+
+        <p className="text-gray-400 mb-6">
+          Most people never fix their money habits.
+          <br />
+          Start before it compounds.
+        </p>
+
+        {/* URGENCY */}
+        <p className="text-sm text-red-400 mb-6">
+          Every month you delay = more money lost silently
+        </p>
+
+        {/* 🔥 FINAL CTA */}
+        <motion.button
+          onClick={() => router.push("/analyze")}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-blue-600 px-8 py-4 rounded-xl text-lg"
+        >
+          🧠 Fix My Money Habits
+        </motion.button>
+      </section>
+      {/* STICKY MOBILE CTA */}
+      <div className="fixed bottom-4 left-0 right-0 flex justify-center md:hidden">
+        <button
+          onClick={() => router.push("/analyze")}
+          className="bg-blue-600 px-6 py-3 rounded-xl shadow-lg"
+        >
+          🧠 Start Fixing
+        </button>
+      </div>
     </div>
   );
 }
