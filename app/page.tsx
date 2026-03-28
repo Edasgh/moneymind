@@ -25,19 +25,22 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0f172a] via-[#020617] to-black text-white">
+    <div className="min-h-screen bg-linear-to-br from-[#0f172a] via-[#020617] to-black text-white overflow-x-hidden">
       {/* NAVBAR */}
-      <nav className="flex justify-between items-center p-6 max-w-6xl mx-auto">
-        <Link href={"/"} className="text-xl font-bold cursor-pointer">
+      <nav className="flex justify-between items-center px-0.5 py-3 md:p-6 max-w-6xl mx-auto">
+        <Link
+          href={"/"}
+          className="text-xs md:text-xl font-bold cursor-pointer"
+        >
           🧠 MoneyMind
         </Link>
 
         {/* 👉 PRIMARY ACTION */}
         <Link
           href={"/analyze"}
-          className="bg-blue-600 px-5 py-2 rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
+          className="bg-blue-600 px-5 py-2 text-sm md:text-lg rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
         >
-          🧠 Analyze My Habits
+          🧠 Start Analysing
         </Link>
       </nav>
 
@@ -70,12 +73,15 @@ export default function Home() {
           And it’s quietly draining your bank account every month.
         </motion.p>
 
+        {/* LIVE EXAMPLE */}
+        <DemoAnalysis />
+
         {/* 👉 MAIN CTA SECTION */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-8 flex justify-center gap-4 flex-wrap"
+          className="mt-0 lg:mt-8 flex justify-center gap-4 flex-wrap"
         >
           {/* 🔥 PRIMARY CTA */}
           <Link
@@ -131,9 +137,6 @@ export default function Home() {
           👀 See How It Works
         </motion.button>
       </motion.section>
-
-      {/* LIVE EXAMPLE */}
-      <DemoAnalysis />
 
       {/* SEPARATOR */}
       <div className="h-px bg-gray-800 max-w-4xl mx-auto mt-20" />
@@ -229,16 +232,7 @@ export default function Home() {
           🧠 Fix My Money Habits
         </motion.button>
       </section>
-      {/* STICKY MOBILE CTA */}
-      <div className="fixed bottom-4 left-0 right-0 flex justify-center md:hidden">
-        <button
-          onClick={() => router.push("/analyze")}
-          className="bg-blue-600 px-6 py-3 rounded-xl shadow-lg"
-        >
-          🧠 Start Fixing
-        </button>
-      </div>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

@@ -54,3 +54,74 @@ It focuses on behavior change instead of complex budgeting.
 * Deeper financial scoring system
 * Voice-based AI coaching
 * Integration with real financial data (optional)
+
+
+-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+
+
+Here’s a **tight, high-impact 2-minute demo script** you can confidently present at a hackathon 👇
+
+---
+
+## 🎤 MoneyMind – 2 Minute Demo Script
+
+**[0:00 – 0:10 | Hook]**
+“Most people don’t have a money problem… they have a habit problem. And that’s exactly what MoneyMind fixes.”
+
+---
+
+**[0:10 – 0:25 | Problem]**
+“Today, people use budgeting apps, track expenses, and still overspend. Why? Because those tools don’t address *behavior*. They don’t tell you *why* you’re spending.”
+
+---
+
+**[0:25 – 0:40 | Solution Intro]**
+“MoneyMind is an AI-powered behavioral finance coach that helps users understand their spending psychology and fix it with simple, actionable advice.”
+
+---
+
+**[0:40 – 1:10 | Live Demo – Landing Page]**
+“As soon as a user lands here, they instantly see how it works.”
+
+👉 (Point to demo chat)
+“This is a live AI preview. Instead of explaining features, we show real value.”
+
+👉 (Pause while animation runs)
+“The AI analyzes a simple habit — like overspending on food — and gives a clear, practical fix, along with a follow-up question to drive behavior change.”
+
+---
+
+**[1:10 – 1:40 | Interaction Demo]**
+“Now let’s try it.”
+
+👉 (Click “Start Fixing” or go to chat)
+“I can type something like: ‘I keep ordering late-night food.’”
+
+👉 (Wait for response / explain)
+“The AI doesn’t just give generic advice. It identifies patterns — like emotional or impulse spending — and suggests small, realistic changes.”
+
+👉 “This makes it feel like a real coach, not just a tool.”
+
+---
+
+**[1:40 – 1:55 | Key Differentiator]**
+“What makes MoneyMind different is that it focuses on *behavior*, not budgets. It’s simple, private, and gives instant, human-like guidance.”
+
+---
+
+**[1:55 – 2:05 | Closing]**
+“So instead of tracking every rupee, MoneyMind helps you fix the habits that actually matter.”
+
+👉 *“Fix your money habits, not just your budget.”*
+
+---
+
+# 🔥 Pro Tips for Delivery
+
+* Pause **slightly** during typing animation → builds curiosity
+* Point physically to screen (judges follow your focus)
+* Don’t rush — confidence > speed
+
+---
+

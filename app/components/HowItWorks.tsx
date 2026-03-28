@@ -30,7 +30,7 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
   };
 
   return (
-    <div className="flex gap-5 items-center justify-center p-0 w-full scale-[0.7]">
+    <div className="flex flex-col md:flex-row gap-5 items-center justify-center -mt-23.75 -mb-20.75 md:mt-0 md:mb-0 p-0 w-full scale-[0.5] md:scale-[0.7]">
       {/* Progress Ring */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
@@ -91,7 +91,7 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="p-6 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 min-w-142.5 flex-2 hover:scale-[1.02] transition-transform duration-300"
+        className="p-6 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 min-w-130 md:min-w-142.5 flex-2 hover:scale-[1.02] transition-transform duration-300"
       >
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-full bg-linear-to-br from-pink-500 to-purple-500 flex items-center justify-center text-lg">
@@ -104,7 +104,7 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
         </div>
 
         <h2
-          className={`text-3xl font-semibold whitespace-pre-line ${getColor()}`}
+          className={`text-2xl md:text-3xl font-semibold whitespace-pre-line ${getColor()}`}
         >
           {(() => {
             if (!result?.personality) return "";
@@ -116,7 +116,7 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
           })()}
         </h2>
 
-        <p className="text-sm text-gray-400 mt-2 whitespace-pre-line">
+        <p className="text-sm text-gray-400 mt-2 whitespace-pre-line hidden md:block">
           {result?.personality}
         </p>
       </motion.div>
@@ -144,7 +144,7 @@ export default function HowItWorks() {
       desc: "Just chat naturally or add a few details about your spending, income, and struggles. No spreadsheets, no complexity — just your real life.",
 
       ui: (
-        <div className="relative group w-140 mx-auto">
+        <div className="relative group xs:w-70 sm:w-80 md:w-140 mx-auto">
           {/* Card */}
           <div className="p-5 space-y-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-lg">
             {/* Fake Inputs */}
@@ -184,7 +184,7 @@ export default function HowItWorks() {
       title: "AI detects hidden behavior patterns",
       desc: "MoneyMind analyzes your inputs to uncover emotional spending triggers, money leaks, and habits you don’t even notice.",
       ui: (
-        <div className="flex flex-col items-center justify-center h-32 text-gray-400 text-md w-140">
+        <div className="flex flex-col items-center justify-center h-32 text-gray-400 text-md xs:w-70 sm:w-80 md:w-140">
           <motion.div
             animate={{ opacity: [0.3, 1, 0.3] }}
             transition={{ repeat: Infinity, duration: 1.5 }}
@@ -198,7 +198,7 @@ export default function HowItWorks() {
       title: "Get a clear score + actionable plan",
       desc: "Receive a financial behavior score, personality insights, and simple fixes you can actually follow in daily life.",
       ui: (
-        <div className="scale-[0.7] origin-top h-100 w-140 relative group">
+        <div className="scale-[0.7] origin-top h-100 w-70 md:w-140 relative group">
           <div className="p-3 space-y-0.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-lg">
             <ScoreCardPreview result={dummyResult} score={72} />
 
@@ -296,7 +296,7 @@ export default function HowItWorks() {
       title: "Start a natural conversation",
       desc: "Ask anything about your money — spending habits, savings problems, or financial confusion. Just type like you're talking to a friend.",
       ui: (
-        <div className="relative group w-140 mx-auto">
+        <div className="relative group xs:w-70 sm:w-80 md:w-140 mx-auto">
           <div className="p-5 space-y-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-lg">
             {/* User Message */}
             <div className="flex justify-end">
@@ -343,7 +343,7 @@ export default function HowItWorks() {
       title: "AI understands your situation",
       desc: "MoneyMind remembers your conversation, detects patterns, and asks smart follow-ups to deeply understand your behavior.",
       ui: (
-        <div className="flex flex-col items-center justify-center h-32 text-gray-400 text-md w-140">
+        <div className="flex flex-col items-center justify-center h-32 text-gray-400 text-md xs:w-70 sm:w-80 md:w-140">
           <motion.div
             animate={{ opacity: [0.3, 1, 0.3] }}
             transition={{ repeat: Infinity, duration: 1.5 }}
@@ -358,7 +358,7 @@ export default function HowItWorks() {
       title: "Get instant guidance",
       desc: "Receive real-time advice, mindset shifts, and simple actions — all personalized to your habits and lifestyle.",
       ui: (
-        <div className="relative group w-140 mx-auto">
+        <div className="relative group xs:w-70 sm:w-80 md:w-140 mx-auto">
           <div className="p-5 space-y-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-lg">
             {/* AI Advice */}
             <div className="flex justify-start">

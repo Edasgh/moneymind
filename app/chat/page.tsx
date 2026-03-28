@@ -60,29 +60,20 @@ export default function ChatPage() {
     setLoading(false);
   };
 
-  // const followUps = [
-  //   "What usually triggers this spending?",
-  //   "How often does this happen?",
-  //   "Do you regret it later?",
-  // ];
-
-  // const handleFallbackFollowUp = () => {
-  //   const random = followUps[Math.floor(Math.random() * followUps.length)];
-
-  //   setMessages((prev) => [...prev, { type: "bot", text: random }]);
-  // };
-
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-black text-white p-6">
+    <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-black text-white px-1.5 py-3 md:p-6">
       <nav className="flex justify-between items-center max-w-6xl mx-auto">
-        <Link href={"/"} className="text-xl font-bold cursor-pointer">
+        <Link
+          href={"/"}
+          className="text-xs md:text-xl font-bold cursor-pointer"
+        >
           🧠 MoneyMind
         </Link>
 
         {/* 👉 PRIMARY ACTION */}
         <Link
           href={"/analyze"}
-          className="bg-blue-600 px-5 py-2 rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
+          className="bg-blue-600 px-5 py-2 text-sm md:text-lg rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
         >
           🧠 Analyze My Habits
         </Link>

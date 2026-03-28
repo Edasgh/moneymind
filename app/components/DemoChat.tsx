@@ -56,7 +56,7 @@ export default function DemoChat() {
       initial={{ opacity: 0, y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6 }}
-      className="mt-5 w-140 bg-gray-900 p-5 rounded-2xl border border-gray-800 text-left shadow-lg shadow-blue-500/10 relative group"
+      className="mt-5 w-85 md:w-140 bg-gray-900 p-5 rounded-2xl border border-gray-800 text-left shadow-lg shadow-blue-500/10 relative group"
     >
       {/* LABEL */}
       <p className="text-xs text-gray-500 mb-3">Live AI preview</p>

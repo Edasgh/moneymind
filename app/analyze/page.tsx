@@ -489,17 +489,20 @@ export default function AnalyzePage() {
   const imColor = sectionColors.impact;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-black text-white p-6">
+    <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-black text-white px-1.5 py-3 md:p-6">
       {/* NAVBAR */}
-      <nav className="flex justify-between items-center max-w-6xl mx-auto">
-        <Link href={"/"} className="text-xl font-bold cursor-pointer">
+      <nav className="flex justify-between items-center max-w-6xl mx-auto mb-20 md:mb-5">
+        <Link
+          href={"/"}
+          className="text-xs md:text-xl font-bold cursor-pointer"
+        >
           🧠 MoneyMind
         </Link>
 
         {/* 👉 PRIMARY ACTION */}
         <Link
           href={"/chat"}
-          className="bg-blue-600 px-5 py-2 rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
+          className="bg-blue-600 px-5 py-2 text-sm md:text-lg rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
         >
           💬 Get Instant Advice
         </Link>
@@ -532,8 +535,8 @@ export default function AnalyzePage() {
         />
 
         <div className="flex gap-1.5 justify-between items-center w-full h-16">
-          <div className="flex gap-1.5 justify-start items-center cursor-pointer flex-1">
-            Harsh Mode &nbsp; :
+          <div className="flex gap-1.5 justify-start items-center cursor-pointer flex-1 text-xs md:text-lg">
+            Harsh Mode &nbsp;:
             {harshMode ? (
               <ToggleRight
                 onClick={() => setHarshMode(!harshMode)}
