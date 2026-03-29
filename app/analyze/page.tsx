@@ -1,9 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import html2pdf from "html2pdf.js";
 import {
   ArrowRight,
   Lightbulb,
@@ -53,6 +52,7 @@ export default function AnalyzePage() {
   const [loading, setLoading] = useState(false);
   const [score, setScore] = useState(0);
   const [harshMode, setHarshMode] = useState(false);
+  const [html2pdfInstance, setHtml2pdfInstance] = useState<any>(null);
 
   // Fallback: categorize spending based on all inputs
   const fallbackCategorizeSpending = ({
@@ -180,7 +180,7 @@ export default function AnalyzePage() {
 
         // Normalize score to percentage
         // Maximum possible score per item is 8 (essential)
-      
+
         finalScore = data.score > 100 ? 100 : data.score;
         finalCategory = data.category;
       }
@@ -412,15 +412,38 @@ export default function AnalyzePage() {
     toast.success("Result Copied!");
   };
 
-const downloadResult = () => {
-  if (!result) {
-    toast.error("Can't download result! Please try again later.");
-    return;
-  }
+  useEffect(() => {
+    // Dynamically import html2pdf.js on client
+    import("html2pdf.js").then((mod) => {
+      setHtml2pdfInstance(() => mod.default);
+    });
+  }, []);
 
-  const element = document.createElement("div");
+  // helper
+  const section = (title: string, content: string) => `
+  <div style="margin-bottom:20px;">
+    <div style="
+      font-size:12px;
+      color:#888;
+      font-weight:bold;
+      margin-bottom:5px;
+      text-transform:uppercase;
+    ">
+      ${title}
+    </div>
+    <div>${content}</div>
+  </div>
+`;
 
-  element.innerHTML = `
+  const downloadResult = () => {
+    if (!html2pdfInstance || !result) {
+      toast.error("Can't download result! Please try again later.");
+      return;
+    }
+
+    const element = document.createElement("div");
+
+    element.innerHTML = `
     <div style="
       font-family: Arial, sans-serif;
       padding: 40px;
@@ -461,32 +484,16 @@ const downloadResult = () => {
     </div>
   `;
 
-const opt = {
-  margin: 0,
-  filename: "MoneyMind-Report.pdf",
-  image: { type: "jpeg", quality: 0.98 },
-  html2canvas: { scale: 2 },
-  jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-} as const;
+    const opt = {
+      margin: 0,
+      filename: "MoneyMind-Report.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    } as const;
 
-  html2pdf().set(opt).from(element).save();
-};
-
-// helper
-const section = (title: string, content: string) => `
-  <div style="margin-bottom:20px;">
-    <div style="
-      font-size:12px;
-      color:#888;
-      font-weight:bold;
-      margin-bottom:5px;
-      text-transform:uppercase;
-    ">
-      ${title}
-    </div>
-    <div>${content}</div>
-  </div>
-`;
+    html2pdfInstance().set(opt).from(element).save();
+  };
 
   const iColor = sectionColors.insight;
   const fColor = sectionColors.fixes;
