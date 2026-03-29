@@ -84,7 +84,7 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
           <span>{getPersonalityEmoji()}</span>
         </div>
 
-        <p className={`text-sm font-semibold ${getColor()} line-clamp-1`}>
+        <p className={`text-sm font-semibold ${getColor()} whitespace-pre-wrap line-clamp-2`}>
           {result?.personality?.replace(/\n/g, " ").split(/[.!?]/)[0]}
         </p>
       </div>
@@ -168,7 +168,7 @@ export default function DemoAnalysis({
               return (
                 <div
                   key={i}
-                  className="p-2 rounded-md bg-white/5 border border-white/10 text-xs text-gray-400 min-h-8"
+                  className="p-2 rounded-md bg-white/5 border border-white/10 text-xs text-gray-400 min-h-8 text-left"
                 >
                   {text}
                   {text?.length !== inputs[i]?.length && (
@@ -206,7 +206,7 @@ export default function DemoAnalysis({
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className={`p-2 rounded-lg border ${sectionColors.insight.border} ${sectionColors.insight.bg}`}
+              className={`p-2 rounded-lg border flex flex-col justify-start items-start gap-0.5 ${sectionColors.insight.border} ${sectionColors.insight.bg}`}
             >
               <p className={`text-[10px] ${sectionColors.insight.title}`}>
                 💡 INSIGHT
@@ -219,7 +219,7 @@ export default function DemoAnalysis({
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className={`p-2 rounded-lg border ${sectionColors.fixes.border} ${sectionColors.fixes.bg}`}
+              className={`p-2 rounded-lg border flex flex-col justify-start items-start gap-0.5 ${sectionColors.fixes.border} ${sectionColors.fixes.bg}`}
             >
               <p className={`text-[10px] ${sectionColors.fixes.title}`}>
                 🎯 ACTION
@@ -242,7 +242,7 @@ export default function DemoAnalysis({
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className={`p-2 rounded-lg border ${sectionColors.impact.border} ${sectionColors.impact.bg}`}
+              className={`p-2 rounded-lg border flex flex-col justify-start items-start gap-0.5 ${sectionColors.impact.border} ${sectionColors.impact.bg}`}
             >
               <p className={`text-[10px] ${sectionColors.impact.title}`}>
                 📉 IMPACT
