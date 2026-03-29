@@ -519,21 +519,21 @@ export default function AnalyzePage() {
           placeholder="What do you spend most on? : e.g., books & stationaries"
           value={spending}
           onChange={(e) => setSpending(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700"
+          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
         />
 
         <input
-          placeholder="Your biggest money problem? : e.g., I keep overspending"
+          placeholder="Your biggest money problem? : e.g., I keep buying new books I never read"
           value={problem}
           onChange={(e) => setProblem(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700"
+          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
         />
 
         <input
           placeholder="Monthly income (₹) : e.g., ₹25000"
           value={income}
           onChange={(e) => setIncome(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700"
+          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
         />
 
         <div className="flex gap-1.5 justify-between items-center w-full h-16">
