@@ -84,7 +84,7 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
           <span>{getPersonalityEmoji()}</span>
         </div>
 
-        <p className={`text-sm font-semibold ${getColor()} whitespace-pre-wrap line-clamp-2`}>
+        <p className={`text-sm text-left font-semibold ${getColor()} whitespace-pre-wrap line-clamp-2`}>
           {result?.personality?.replace(/\n/g, " ").split(/[.!?]/)[0]}
         </p>
       </div>
