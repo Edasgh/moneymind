@@ -155,7 +155,8 @@ export default function ChatPage() {
               </span>
             </div>
 
-            {msg.type === "bot" && messages[i] === msg && (
+           {/* If last message, ask ai to ask follow up questions  */}
+            {msg.type === "bot" && messages[messages.length-1] === msg && (
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={handleFollowUp}
