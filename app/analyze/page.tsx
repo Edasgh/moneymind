@@ -516,21 +516,21 @@ export default function AnalyzePage() {
       {/* FORM */}
       <div className="max-w-xl mx-auto space-y-4">
         <input
-          placeholder="What do you spend most on?"
+          placeholder="What do you spend most on? : e.g, books & stationaries"
           value={spending}
           onChange={(e) => setSpending(e.target.value)}
           className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700"
         />
 
         <input
-          placeholder="Your biggest money problem?"
+          placeholder="Your biggest money problem? : e.g, I keep overspending"
           value={problem}
           onChange={(e) => setProblem(e.target.value)}
           className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700"
         />
 
         <input
-          placeholder="Monthly income (₹)"
+          placeholder="Monthly income (₹) : e.g, ₹25000"
           value={income}
           onChange={(e) => setIncome(e.target.value)}
           className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700"
