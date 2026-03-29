@@ -1,4 +1,4 @@
-# 🧠 MoneyMind
+# [🧠 MoneyMind](https://moneymind-nomics.vercel.app/)
 
 **Fix your money habits, not just your budget.**
 
