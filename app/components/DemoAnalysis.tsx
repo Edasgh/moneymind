@@ -92,10 +92,7 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
   );
 }
 
-export default function DemoAnalysis({
-
-
-}) {
+export default function DemoAnalysis() {
     const dummyResult = {
       personality:
         "You’re a comfort spender who uses food and shopping to cope with stress. You’re not reckless, but consistency is your problem.",
