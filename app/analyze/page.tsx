@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import jsPDF from "jspdf";
 import {
+  ArrowRight,
   Lightbulb,
   Target,
   ToggleLeft,
@@ -501,10 +502,11 @@ export default function AnalyzePage() {
 
         {/* 👉 PRIMARY ACTION */}
         <Link
-          href={"/chat"}
-          className="bg-blue-600 px-5 py-2 text-sm md:text-lg rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
+          href="/chat"
+          className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out"
         >
-          💬 Get Instant Advice
+          Start Chat
+          <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
         </Link>
       </nav>
       <h1 className="text-2xl font-bold text-center mb-6">
@@ -535,7 +537,7 @@ export default function AnalyzePage() {
         />
 
         <div className="flex gap-1.5 justify-between items-center w-full h-16">
-          <div className="flex gap-1.5 justify-start items-center cursor-pointer flex-1 text-xs md:text-lg">
+          <div className="flex flex-col md:flex-row gap-1.5 justify-center md:justify-start items-start md:items-center cursor-pointer flex-1 text-xs md:text-sm  whitespace-pre-wrap">
             Harsh Mode &nbsp;:
             {harshMode ? (
               <ToggleRight
@@ -560,7 +562,7 @@ export default function AnalyzePage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`flex-2 text-sm ${harshMode ? "text-red-400" : "text-gray-400"}`}
+              className={`flex-2 text-xs md:text-sm ${harshMode ? "text-red-400" : "text-gray-400"}`}
             >
               {harshMode
                 ? "⚠️ Harsh Mode ON: Preparing to roast your financial habits..."

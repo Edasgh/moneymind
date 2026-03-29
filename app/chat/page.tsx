@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { ArrowRight } from "lucide-react";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<{type:string,text:string}[]>([]);
@@ -73,9 +74,10 @@ export default function ChatPage() {
         {/* 👉 PRIMARY ACTION */}
         <Link
           href={"/analyze"}
-          className="bg-blue-600 px-5 py-2 text-sm md:text-lg rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
+          className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out"
         >
-          🧠 Analyze My Habits
+          Try Now{" "}
+          <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
         </Link>
       </nav>
 

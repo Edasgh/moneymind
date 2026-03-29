@@ -6,6 +6,7 @@ import HowItWorks from "./components/HowItWorks";
 import DemoChat from "./components/DemoChat";
 import DemoAnalysis from "./components/DemoAnalysis";
 import Footer from "./components/Footer";
+import { ArrowRight, ChevronRight } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-linear-to-br from-[#0f172a] via-[#020617] to-black text-white overflow-x-hidden">
       {/* NAVBAR */}
-      <nav className="flex justify-between items-center px-0.5 py-3 md:p-6 max-w-6xl mx-auto">
+      <nav className="flex justify-between items-center px-0.5 py-3 md:p-6 max-w-screen mx-auto fixed bg-transparent backdrop-blur-2xl w-full z-9999999 md:relative md:w-296">
         <Link
           href={"/"}
           className="text-xs md:text-xl font-bold cursor-pointer"
@@ -38,9 +39,10 @@ export default function Home() {
         {/* 👉 PRIMARY ACTION */}
         <Link
           href={"/analyze"}
-          className="bg-blue-600 px-5 py-2 text-sm md:text-lg rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition"
+          className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out"
         >
-          🧠 Start Analysing
+          Try Now{" "}
+          <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
         </Link>
       </nav>
 

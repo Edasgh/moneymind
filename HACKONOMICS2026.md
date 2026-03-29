@@ -14,7 +14,7 @@ It allows users to:
 
 It focuses on behavior change instead of complex budgeting.
 
-## How we built it
+## How I built it
 
 * Frontend: Next.js + Tailwind CSS + Framer Motion for smooth UI/UX
 * Backend: API routes in Next.js
@@ -22,7 +22,7 @@ It focuses on behavior change instead of complex budgeting.
 * Logic: Custom system prompts to enforce tone, short replies, and behavioral insights
 * UX: Chat-based interface with follow-up questions and contextual memory
 
-## Challenges we ran into
+## Challenges I ran into
 
 * Making AI responses feel human and not robotic
 * Controlling output format (avoiding markdown, long answers, etc.)
@@ -30,7 +30,7 @@ It focuses on behavior change instead of complex budgeting.
 * Managing chat history without increasing latency
 * Creating a clean, engaging UI without overwhelming the user
 
-## Accomplishments that we're proud of
+## Accomplishments that I'm proud of
 
 * Built a highly engaging AI chat experience with personality
 * Achieved concise, actionable AI responses (2–3 lines)
@@ -38,7 +38,7 @@ It focuses on behavior change instead of complex budgeting.
 * Created a strong behavioral finance angle (not just budgeting)
 * Delivered a smooth and modern UI with meaningful interactions
 
-## What we learned
+## What I learned
 
 * Prompt engineering is as important as code
 * Simplicity in UI leads to better engagement
@@ -124,4 +124,80 @@ Here’s a **tight, high-impact 2-minute demo script** you can confidently prese
 * Don’t rush — confidence > speed
 
 ---
+______________________________________
+## 🎤 MoneyMind – 2 Minute Demo Script (Demo First Version)
+
+---
+
+### **[0:00 – 0:20 | Live Demo Hook]**
+
+*(Open with the product already running)*
+
+“Let me show you something real quick.”
+
+👉 *(Point to chat UI as animation starts)*
+“I type: *‘I spend too much on food delivery’*…”
+
+👉 *(Pause while AI types)*
+“And within seconds, this AI doesn’t just give advice — it identifies the behavior behind it.”
+
+👉 *(Let the message finish)*
+“It tells me this is impulse spending, suggests a ₹200 weekly cap, and even asks what’s triggering it — stress or boredom.”
+
+---
+
+### **[0:20 – 0:35 | Impact Statement]**
+
+“This feels less like an app… and more like a personal finance coach that actually understands you.”
+
+---
+
+### **[0:35 – 0:55 | Problem]**
+
+“The problem today is — people already have budgeting apps. They track expenses, set limits… and still overspend.”
+
+“Because the real issue isn’t money — it’s behavior.”
+
+---
+
+### **[0:55 – 1:15 | Solution]**
+
+“MoneyMind is an AI-powered behavioral finance coach that helps users understand *why* they spend — and gives simple, practical ways to fix it.”
+
+“Not complex dashboards. Not spreadsheets. Just clear, human-like guidance.”
+
+---
+
+### **[1:15 – 1:40 | Interaction Demo]**
+
+👉 *(Click into input again)*
+“Let’s try another one — *‘I order late-night snacks every day’*.”
+
+👉 *(Gesture while response happens)*
+“Now instead of generic advice, it identifies patterns like emotional or habitual spending…”
+
+“And gives small, realistic actions — the kind people can actually follow.”
+
+---
+
+### **[1:40 – 1:55 | Differentiator]**
+
+“What makes MoneyMind different is that it focuses on behavior change — not just tracking numbers.”
+
+“It’s instant, private, and feels like talking to someone who gets you.”
+
+---
+
+### **[1:55 – 2:05 | Closing]**
+
+“So instead of tracking every rupee…”
+
+👉 *(Look up, slight pause)*
+**“MoneyMind helps you fix the habits that actually matter.”**
+
+---
+
+### 🔥 Closing Line (confident, slower)
+
+**“Fix your money habits, not just your budget.”**
 
