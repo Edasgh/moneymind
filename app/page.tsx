@@ -141,7 +141,7 @@ export default function Home() {
       </motion.section>
 
       {/* SEPARATOR */}
-      <div className="h-px bg-gray-800 max-w-4xl mx-auto mt-20" />
+      <div className="h-px max-w-4xl mx-auto mt-20 bg-linear-to-r from-transparent via-white/20 to-transparent" />
 
       {/* WHO IT'S FOR */}
       <p className="text-center text-gray-400 mt-12">
