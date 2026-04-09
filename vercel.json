@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/worker/process-statements",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/worker/analyze-finances",
+      "schedule": "* * * * *"
+    }
+  ]
+}

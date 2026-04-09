@@ -2,14 +2,19 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import HowItWorks from "./components/HowItWorks";
-import DemoChat from "./components/DemoChat";
-import DemoAnalysis from "./components/DemoAnalysis";
-import Footer from "./components/Footer";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import HowItWorks from "@/components/HowItWorks";
+import DemoChat from "@/components/DemoChat";
+import Footer from "@/components/Footer";
+import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import SignInModal from "@/components/SignInModal";
+import { signOut, useSession } from "next-auth/react";
 
 export default function Home() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [loggedIn, setLoggedIn] = useState(session ? true : false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const container = {
     hidden: {},
@@ -26,9 +31,18 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0f172a] via-[#020617] to-black text-white overflow-x-hidden">
+    <div className="min-h-screen bg-black text-white overflow-x-hidden relative">
+      {/* 🔥 PREMIUM BACKGROUND */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-25 left-1/2 -translate-x-1/2 w-200 h-200 bg-blue-500/20 blur-[120px] rounded-full" />
+        <div className="absolute -bottom-25 -right-25 w-125 h-125 bg-purple-500/20 blur-[120px] rounded-full" />
+      </div>
+      <SignInModal show={showLoginModal} setShow={setShowLoginModal} />
       {/* NAVBAR */}
-      <nav className="flex justify-between items-center px-0.5 py-3 md:p-6 max-w-screen mx-auto fixed bg-transparent backdrop-blur-2xl w-full z-9999999 md:relative md:w-296">
+      <nav
+        className="flex flex-wrap gap-3 justify-between items-center px-4 py-3 md:px-3 md:py-6 max-w-6xl mx-auto fixed md:relative top-0 left-0 right-0 z-50
+    bg-white/5 md:bg-inherit backdrop-blur-xl"
+      >
         <Link
           href={"/"}
           className="text-xs md:text-xl font-bold cursor-pointer"
@@ -36,14 +50,48 @@ export default function Home() {
           🧠 MoneyMind
         </Link>
 
-        {/* 👉 PRIMARY ACTION */}
-        <Link
-          href={"/analyze"}
-          className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out"
-        >
-          Try Now{" "}
-          <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* 👉 PRIMARY ACTION */}
+          <button
+            onClick={() => {
+              if (session) {
+                router.push("/analyze");
+              } else {
+                setShowLoginModal(true);
+              }
+            }}
+            className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out cursor-pointer"
+          >
+            Try now
+            <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
+          </button>
+
+          {session && (
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-xl border border-white/10">
+              <span
+                onClick={() => router.push("/profile")}
+                className="text-xs text-gray-300 cursor-pointer"
+              >
+                {session?.user?.name && (
+                  <>
+                    {session?.user?.name.length > 10 ? (
+                      <>{session?.user?.name.slice(0, 10)}..</>
+                    ) : (
+                      <>{session?.user?.name}</>
+                    )}
+                  </>
+                )}
+              </span>
+              <div className="w-px h-3.25 bg-linear-to-r from-transparent via-white/20 to-transparent" />
+              <button
+                onClick={() => signOut()}
+                className="text-xs text-red-400"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* HERO */}
@@ -57,11 +105,15 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-4xl md:text-6xl font-bold leading-tight"
+          className="text-3xl md:text-6xl font-bold leading-tight"
         >
-          Fix Your <span className="text-blue-500">Money Habits</span>
+          Your AI Financial
+          <span className="bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            {" "}
+            Decision Engine
+          </span>
           <br />
-          Not Just Your Knowledge
+          Not Just Another Tracker
         </motion.h1>
 
         <motion.p
@@ -70,60 +122,64 @@ export default function Home() {
           transition={{ delay: 0.4 }}
           className="text-gray-400 mt-6 max-w-2xl mx-auto"
         >
-          You don’t have a money problem — you have a habit problem.
+          Analyze spending. Predict future. Get decisions.
           <br />
-          And it’s quietly draining your bank account every month.
+          Know what you can afford — before you regret it.
         </motion.p>
 
-        {/* LIVE EXAMPLE */}
-        <DemoAnalysis />
+        {/* 🔥 DEMO FIRST */}
+        {/* <DemoAnalysis /> */}
 
-        {/* 👉 MAIN CTA SECTION */}
+        {/* 🚀 PRIMARY ACTIONS */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-0 lg:mt-8 flex justify-center gap-4 flex-wrap"
+          className="mt-6 flex justify-center gap-4 flex-wrap"
         >
-          {/* 🔥 PRIMARY CTA */}
-          <Link
-            href={"/analyze"}
-            className="bg-blue-600 px-6 py-3 rounded-xl text-lg"
+          {/* SECONDARY */}
+          <button
+            onClick={() => {
+              if (session) {
+                router.push("/analyze");
+              } else {
+                setShowLoginModal(true);
+              }
+            }}
+            className="relative group px-6 py-3 rounded-xl text-base md:text-lg font-medium bg-linear-to-r from-blue-500 to-purple-500 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-300"
           >
-            🧠 Analyze My Habits
-          </Link>
+            <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 bg-white/10 blur transition" />
+            Get Started
+          </button>
 
-          {/* 💬 SECONDARY CTA */}
-          <Link
-            href={"/chat"}
-            className="bg-gray-800 px-6 py-3 rounded-xl text-lg"
+          {/* CHAT */}
+          <button
+            onClick={() =>
+              document
+                .getElementById("how-it-works")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-xl text-base md:text-lg"
           >
-            💬 Get Instant Advice
-          </Link>
+            👀 See How It Works
+          </button>
         </motion.div>
-        {/* Other CTAs */}
+
+        {/* TRUST + PROOF */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
         >
-          {/* DEMO LINK */}
-          <Link
-            href={"/chat"}
-            className="text-sm text-blue-400 underline mt-3 block"
-          >
-            Try a sample conversation →
-          </Link>
-          {/* TRUST */}
           <p className="text-xs text-gray-500 mt-4">
-            No login required • No data stored • 100% private
+            Instant analysis • AI-powered decisions
           </p>
 
-          {/* SOCIAL PROOF */}
           <p className="text-xs text-gray-500 mt-2">
-            🔥 1,000+ habits analyzed this week
+            ⚡ Predicts future expenses • Recommends smarter actions
           </p>
         </motion.div>
+
         {/* HOW BUTTON */}
         <motion.button
           initial={{ opacity: 0, y: 20 }}
@@ -134,14 +190,14 @@ export default function Home() {
               .getElementById("how-it-works")
               ?.scrollIntoView({ behavior: "smooth" })
           }
-          className="mt-6 bg-gray-800 px-5 py-2 rounded-xl text-sm hover:bg-gray-700"
+          className="mt-6 bg-gray-800 px-5 py-2 rounded-xl text-xs md:text-sm hover:bg-gray-700"
         >
-          👀 See How It Works
+          🎬 Watch Demo
         </motion.button>
       </motion.section>
 
       {/* SEPARATOR */}
-      <div className="h-px bg-gray-800 max-w-4xl mx-auto mt-20" />
+      <div className="h-px max-w-4xl mx-auto mt-20 bg-linear-to-r from-transparent via-white/20 to-transparent" />
 
       {/* WHO IT'S FOR */}
       <p className="text-center text-gray-400 mt-12">
@@ -158,31 +214,42 @@ export default function Home() {
       >
         {[
           {
-            title: "🧠 Why You Overspend",
-            desc: "Identify emotional triggers behind Swiggy, Amazon & impulse buys.",
+            title: "🧠 AI Behavior Analysis",
+            desc: "Understands your spending patterns and detects hidden habits.",
           },
           {
-            title: "💬 Talk It Out",
-            desc: "Confess your habits and get brutally honest AI feedback.",
+            title: "⚖️ Smart Financial Decisions",
+            desc: "Ask 'Can I afford this?' and get instant AI-backed answers.",
           },
           {
-            title: "⚡ Real Cost of Habits",
-            desc: "See how small daily spends turn into ₹50,000+ yearly losses.",
+            title: "🔮 Future Predictions",
+            desc: "Forecast your next month expenses before they happen.",
           },
         ].map((f, i) => (
           <motion.div
             key={i}
             variants={item}
-            whileHover={{ scale: 1.05, y: -5 }}
+            whileHover={{ scale: 1.04, y: -6 }}
             transition={{ type: "spring", stiffness: 200 }}
-            className="p-6 bg-gray-900 rounded-2xl border border-gray-800"
+            className="p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
             <p className="text-gray-400">{f.desc}</p>
           </motion.div>
         ))}
       </motion.section>
-      <motion.section
+      <section className="mt-20 text-center px-6">
+        <h2 className="text-2xl font-semibold mb-4">
+          🤖 Autonomous Money Assistant
+        </h2>
+
+        <p className="text-gray-400 max-w-2xl mx-auto">
+          MoneyMind doesn't just track — it thinks, predicts, and alerts you. It
+          learns your behavior and guides you toward better financial decisions
+          automatically.
+        </p>
+      </section>
+      {/* <motion.section
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -197,10 +264,10 @@ export default function Home() {
         </p>
       </motion.section>
 
-      {/* LIVE CHAT EXAMPLE */}
+      
       <div className="flex justify-center items-center">
         <DemoChat />
-      </div>
+      </div> */}
 
       {/* HOW IT WORKS */}
       <div id="how-it-works">
@@ -220,21 +287,31 @@ export default function Home() {
         </p>
 
         {/* URGENCY */}
-        <p className="text-sm text-red-400 mb-6">
+        <p className="text-xs md:text-sm text-red-400 mb-6">
           Every month you delay = more money lost silently
         </p>
 
         {/* 🔥 FINAL CTA */}
         <motion.button
-          onClick={() => router.push("/analyze")}
+          onClick={() => {
+            if (session) {
+              router.push("/analyze");
+            } else {
+              setShowLoginModal(true);
+            }
+          }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-blue-600 px-8 py-4 rounded-xl text-lg"
+          className="relative px-8 py-4 rounded-xl text-base md:text-lg font-semibold bg-linear-to-r from-blue-500 to-purple-600 shadow-xl shadow-blue-500/30 hover:scale-105 transition-all duration-300"
         >
           🧠 Fix My Money Habits
         </motion.button>
       </section>
-      <Footer />
+      <Footer
+        loggedIn={loggedIn}
+        show={showLoginModal}
+        setShow={setShowLoginModal}
+      />
     </div>
   );
 }

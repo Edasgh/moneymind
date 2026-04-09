@@ -1,17 +1,21 @@
+/*
+I want my analyze page to show the names of statements & on clicking those names only -> show transactions
+And AI Analysis should be done considering the transactions in all of the statements
+
 "use client";
+
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { ArrowRight, Lightbulb, Target, TrendingDown } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { motion } from "framer-motion";
+import AddTransactionModal from "@/components/AddTransactionModal";
+import TransactionTable from "@/components/TransactionTable";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import {
-  ArrowRight,
-  Lightbulb,
-  Target,
-  ToggleLeft,
-  ToggleRight,
-  TrendingDown,
-} from "lucide-react";
-import ScoreCard from "../components/ScoreCard";
+import ScoreCard from "@/components/ScoreCard";
+import NotFound from "../not-found";
+import UploadStatement from "@/components/UploadStatement";
 
 export const sectionColors = {
   personality: {
@@ -36,360 +40,94 @@ export const sectionColors = {
   },
 };
 
-export default function AnalyzePage() {
-  const [spending, setSpending] = useState("");
-  const [problem, setProblem] = useState("");
-  const [income, setIncome] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
-  const [streamText, setStreamText] = useState(""); // for live typing
+export default function Analyze() {
+  const { data: session } = useSession();
+
+  const [income, setIncome] = useState("0");
+  const [transactions, setTransactions] = useState<
+    {
+      date: string;
+      mode: string;
+      category: string;
+      amount: string;
+      type: "Income" | "Expense";
+    }[]
+  >([]);
+  const [showModal, setShowModal] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
+  const [html2pdfInstance, setHtml2pdfInstance] = useState<any>(null);
+  const [score, setScore] = useState(0);
+  const [showUpload, setShowUpload] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [harshMode, setHarshMode] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
   const [result, setResult] = useState<{
     personality: string;
     insight: string;
     fix: string;
     impact: string;
-  } | null>(null);
+  } | null>({
+    personality: "You tend to spend impulsively on non-essential items.",
+    insight: "60% of your expenses come from food & entertainment.",
+    fix: "Try setting a weekly spending limit of ₹2000.",
+    impact: "You could save ₹5000/month with small adjustments",
+  });
 
-  const [loading, setLoading] = useState(false);
-  const [score, setScore] = useState(0);
-  const [harshMode, setHarshMode] = useState(false);
-  const [html2pdfInstance, setHtml2pdfInstance] = useState<any>(null);
+  const [summary, setSummary] = useState({
+    essential: 0,
+    lifestyle: 0,
+    impulsive: 0,
+  });
 
-  // Fallback: categorize spending based on all inputs
-  const fallbackCategorizeSpending = ({
-    spending,
-    problem,
-    income,
-  }: {
-    spending: string;
-    problem: string;
-    income: string;
-  }) => {
-    const text = spending.toLowerCase();
-    const prob = problem.toLowerCase();
-    const inc = Number(income);
+  const router = useRouter();
 
-    // Base category from spending
-    let category: "essential" | "lifestyle" | "impulsive" = "lifestyle";
+  const [goals, setGoals] = useState<any[]>([]);
+  const [goalInput, setGoalInput] = useState("");
+  const [goalAmount, setGoalAmount] = useState("");
 
-    if (/rent|food|bills|groceries|education|medical/.test(text))
-      category = "essential";
-    else if (
-      /shopping|clothes|books|gym|travel|subscriptions|amazon|netflix|makeup/.test(
-        text,
-      )
-    )
-      category = "lifestyle";
-    else if (/zomato|swiggy|fast food|luxury|party|alcohol|gambling/.test(text))
-      category = "impulsive";
+  const [affordInput, setAffordInput] = useState("");
+  const [affordResult, setAffordResult] = useState("");
+  const [aiGoalResult, setAiGoalResult] = useState("");
 
-    // Adjust category based on problem awareness
-    if (
-      category === "lifestyle" &&
-      /debt|overspending|loan|no savings/.test(prob)
-    ) {
-      category = "impulsive"; // bad habits escalate risk
-    }
+  const totalSpent = transactions
+    .filter((t) => t.type === "Expense")
+    .reduce((acc, t) => acc + Number(t.amount), 0);
+  const totalAmount =
+    Number(income) +
+    transactions
+      .filter((t) => t.type === "Income")
+      .reduce((acc, t) => acc + Number(t.amount), 0);
 
-    // Adjust category based on very low income
-    if (category !== "essential" && inc <= 10000) {
-      category = "impulsive"; // risky if income is too low
-    }
-
-    return category;
+  // ADD GOAL
+  const addGoal = () => {
+    if (!goalInput || !goalAmount) return;
+    setGoals([...goals, { title: goalInput, target: goalAmount, saved: 0 }]);
+    setGoalInput("");
+    setGoalAmount("");
   };
 
-  // Fallback: calculate score out of 100 based on spending, problem, income
-  const fallbackCalculateScore = ({
-    spending,
-    problem,
-    income,
-  }: {
-    spending: string;
-    problem: string;
-    income: string;
-  }) => {
-    let score = 0;
-    const spend = spending.toLowerCase();
-    const prob = problem.toLowerCase();
-    const inc = Number(income);
-
-    // -------------------------
-    // 1️⃣ Spending (0–40)
-    // -------------------------
-    if (/rent|food|bills|groceries|education|medical/.test(spend)) score += 35;
-    else if (
-      /shopping|clothes|books|gym|travel|subscriptions|amazon|netflix|makeup/.test(
-        spend,
-      )
-    )
-      score += 25;
-    else if (
-      /zomato|swiggy|fast food|luxury|party|alcohol|gambling/.test(spend)
-    )
-      score += 10;
-    else score += 20; // neutral
-
-    // -------------------------
-    // 2️⃣ Problem Awareness (0–30)
-    // -------------------------
-    if (/debt|overspending|loan|no savings/.test(prob))
-      score += 10; // low awareness, bad
-    else if (/saving|budget|expenses/.test(prob))
-      score += 20; // medium awareness
-    else score += 15; // neutral
-
-    // -------------------------
-    // 3️⃣ Income (0–30)
-    // -------------------------
-    if (!inc || inc <= 0) score += 5;
-    else if (inc > 50000) score += 30;
-    else if (inc > 20000) score += 20;
-    else score += 15;
-
-    return Math.min(Math.round(score), 100);
-  };
-
-  const analyzeSpending = async (
-    spending: string,
-    income: string,
-    problem: string,
-  ) => {
-    setLoading(true);
-    setStreamText("");
-    setStreamText("Analyzing spending behaviour...\n");
-
-    setTimeout(() => {
-      setStreamText((prev) => prev + "Classifying behavior...\n");
-    }, 700);
-
-    try {
-      const res = await fetch("/api/classify", {
-        method: "POST",
-        body: JSON.stringify({ spending, income, problem }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const data = await res.json();
-      let finalScore = 0;
-      let finalCategory: string | null = null;
-      if (!data || data.category === "unknown") {
-        finalScore = 0;
-        finalCategory = null;
-      } else {
-        // console.log("data from analyseSpending : ",data);
-
-        // Normalize score to percentage
-        // Maximum possible score per item is 8 (essential)
-
-        finalScore = data.score > 100 ? 100 : data.score;
-        finalCategory = data.category;
-      }
-
-      setScore(finalScore);
-      setCategory(finalCategory);
-    } catch (error) {
-      console.log("Error in analyze spending : ", error);
-      // Fallback
-      const finalCategory = fallbackCategorizeSpending({
-        spending,
-        problem,
-        income,
-      });
-      const finalScore = fallbackCalculateScore({ spending, problem, income });
-
-      setScore(finalScore);
-      setCategory(finalCategory);
+  // AFFORD CHECK (dummy logic)
+  const checkAfford = () => {
+    const remaining = Number(income) - totalSpent;
+    if (remaining >= Number(affordInput)) {
+      setAffordResult("✅ You can afford this 🎉");
+    } else {
+      setAffordResult("⚠️ Not affordable yet. Keep saving.");
     }
   };
 
-  // Fallback : generate personality based on category & score
-  const getPersonality = (
-    score: number,
-    category: string | null,
-    harshMode: boolean,
-  ): string => {
-    // Clamp score between 0–100
-    const s = Math.max(0, Math.min(score, 100));
+  const handleAskAI = (goal: any) => {
+    const remaining = Number(income) - totalSpent;
 
-    let message = "";
+    if (remaining >= goal.target) {
+      setAiGoalResult(`✅ You can afford ${goal.title} now 🎉`);
+    } else {
+      const months = Math.ceil(goal.target / (remaining || 1));
 
-    if (category === "essential") {
-      if (s >= 85)
-        message =
-          "💎 Financial Pro — Your essential spending is perfectly balanced!";
-      else if (s >= 70)
-        message =
-          "⚖️ Balanced Spender — You prioritize essentials well, minor indulgences ok.";
-      else if (s >= 50)
-        message = harshMode
-          ? "⚠️ Risky Spender — Even essential spending could use more discipline!"
-          : "💰 Careless Spender — Essentials managed, but watch other habits.";
-      else if (s >= 30)
-        message = harshMode
-          ? "🔥 Impulse Spender — Poor control over necessary expenses!"
-          : "💸 Impulse Spender — Essential spending inconsistent, be careful!";
-      else
-        message = harshMode
-          ? "🚨 Financial Disaster — Essential expenses are a mess!"
-          : "😱 Chaotic Spender — Essentials neglected, urgent improvement needed!";
-    } else if (category === "lifestyle") {
-      if (s >= 85)
-        message =
-          "💎 Financial Pro — Lifestyle spending is smart and controlled!";
-      else if (s >= 70)
-        message =
-          "⚖️ Balanced Spender — You enjoy life moderately without overspending.";
-      else if (s >= 50)
-        message = harshMode
-          ? "⚠️ Risky Spender — Lifestyle indulgences may hurt your wallet!"
-          : "💰 Careless Spender — You sometimes overspend on lifestyle items.";
-      else if (s >= 30)
-        message = harshMode
-          ? "🔥 Impulse Spender — Lifestyle purchases are uncontrolled!"
-          : "💸 Impulse Spender — Frequent lifestyle overspending detected.";
-      else
-        message = harshMode
-          ? "🚨 Financial Disaster — Lifestyle spending is reckless!"
-          : "😱 Chaotic Spender — Major overspending on lifestyle, beware!";
-    } else if (category === "impulsive") {
-      if (s >= 85)
-        message =
-          "💎 Financial Pro — Rare for impulsive spenders, excellent control!";
-      else if (s >= 70)
-        message =
-          "⚖️ Balanced Spender — Impulsive habits exist, but you mostly control them.";
-      else if (s >= 50)
-        message = harshMode
-          ? "⚠️ Risky Spender — Impulsive spending is risky, tighten control!"
-          : "💰 Careless Spender — You often spend impulsively, work on discipline.";
-      else if (s >= 30)
-        message = harshMode
-          ? "🔥 Impulse Spender — Brutal truth: impulsive spending dominates your finances!"
-          : "💸 Impulse Spender — Impulse buys frequently hurt your budget.";
-      else
-        message = harshMode
-          ? "🚨 Financial Disaster — Uncontrolled impulse spending everywhere!"
-          : "😱 Chaotic Spender — Impulsive habits are high-risk, take action!";
-    }
-
-    return message;
-  };
-
-  const handleAnalyze = async () => {
-    if (
-      spending.trim().length === 0 ||
-      problem.trim().length === 0 ||
-      income.trim().length === 0
-    ) {
-      toast.error("Please fill all the fields!");
-      return;
-    }
-
-    await analyzeSpending(spending, income, problem);
-
-    setLoading(true);
-    setResult(null);
-    setStreamText("");
-
-    //  Start fake loading (premium UX)
-    setStreamText("Analyzing patterns...\n");
-
-    setTimeout(() => {
-      setStreamText((prev) => prev + "Detecting behavior...\n");
-    }, 700);
-
-    setTimeout(() => {
-      setStreamText((prev) => prev + "Generating insights...\n\n");
-    }, 1400);
-
-    try {
-      //  Call Gemini API
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        body: JSON.stringify({
-          prompt: `
-        Brutal mode: ${harshMode ? "ON" : "OFF"}
-
-        User financial data:
-        Spending: ${spending}${category && category.trim() ? `\nSpending category: ${category}` : ""}
-        Problem: ${problem}
-        Income: ${income}
-        Score: ${score}
-
-        Return ONLY valid JSON in the EXACT format below. Do NOT include any extra text, explanations, or markdown:
-
-        {
-        "personality": "<single-line personality insight, adapt to brutal mode>",
-        "insight": "<what the user is doing wrong>",
-        "fix": "<3 simple actionable steps separated by \\n (DO NOT separate by 1,2 numbers or bullets or any symbols)>",
-        "impact": "<what happens if they don’t improve>"
-        }
-        `,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to fetch analysis");
-
-      if (!res.body) return;
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-
-      let fullText = "";
-      let done = false;
-
-      // ✅ 4. STREAM RESPONSE
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-
-        const chunk = decoder.decode(value);
-        fullText += chunk;
-
-        setStreamText((prev) => prev + chunk); // 🔥 live typing
-      }
-
-      //  Parse JSON → final result
-
-      //  Remove markdown blocks
-      let cleaned = fullText.replace(/```json|```/g, "").trim();
-
-      //  Sometimes LLM adds text before/after JSON — try to extract {...} block
-      const match = cleaned.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("No JSON found in LLM output");
-
-      cleaned = match[0];
-
-      //  Safely parse
-      const parsed = JSON.parse(cleaned);
-
-      const rawFix = parsed.fix;
-
-      //  Handle ALL cases safely
-      let fixList: string[] = [];
-
-      if (typeof rawFix === "string") {
-        fixList = rawFix
-          .split(/\d+\.\s|•\s|-\s/)
-          .map((item) => item.trim())
-          .filter((item) => item.length > 0);
-      } else if (Array.isArray(rawFix)) {
-        fixList = rawFix;
-      } else {
-        fixList = ["No suggestions available"];
-      }
-
-      setResult({
-        ...parsed,
-        personality:
-          parsed.personality || getPersonality(score, category, harshMode),
-        fix: fixList.join("\n"),
-      });
-    } catch (error) {
-      toast.error("Something went wrong! Please try again later. ");
-      console.log("Error while analysing : ", error);
-    } finally {
-      setLoading(false);
+      setAiGoalResult(
+        `You cannot afford ${goal.title} yet.\n\n💡 At your current savings rate, you can afford it in ~${months} months.`,
+      );
     }
   };
 
@@ -399,14 +137,14 @@ export default function AnalyzePage() {
       return;
     }
     const text = `🧠 My MoneyMind Result:
-    
-        ${result.personality}
 
-        💡 Insight: ${result.insight}
-        ⚡ Fix: ${result.fix}
-        💰 Impact: ${result.impact}
+          ${result.personality}
 
-        Try it yourself! 🚀`;
+          💡 Insight: ${result.insight}
+          ⚡ Fix: ${result.fix}
+          💰 Impact: ${result.impact}
+
+          Try it yourself! 🚀`;
 
     navigator.clipboard.writeText(text);
     toast.success("Result Copied!");
@@ -421,19 +159,19 @@ export default function AnalyzePage() {
 
   // helper
   const section = (title: string, content: string) => `
-  <div style="margin-bottom:20px;">
-    <div style="
-      font-size:12px;
-      color:#888;
-      font-weight:bold;
-      margin-bottom:5px;
-      text-transform:uppercase;
-    ">
-      ${title}
+    <div style="margin-bottom:20px;">
+      <div style="
+        font-size:12px;
+        color:#888;
+        font-weight:bold;
+        margin-bottom:5px;
+        text-transform:uppercase;
+      ">
+        ${title}
+      </div>
+      <div>${content}</div>
     </div>
-    <div>${content}</div>
-  </div>
-`;
+  `;
 
   const downloadResult = () => {
     if (!html2pdfInstance || !result) {
@@ -444,45 +182,45 @@ export default function AnalyzePage() {
     const element = document.createElement("div");
 
     element.innerHTML = `
-    <div style="
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      color: #111;
-      line-height: 1.6;
-    ">
-      <div>
-        <h1 style="font-size:26px; margin-bottom:5px;">
-          MoneyMind Report
-          <span style="
-            float:right;
-            font-size:16px;
-            color:#2563eb;
-            font-weight:bold;
-          ">
-            Score: ${score} / 100
-          </span>
-        </h1>
-        <div style="color:#666; font-size:13px; margin-bottom:20px;">
-          Your financial behavior analysis
+      <div style="
+        font-family: Arial, sans-serif;
+        padding: 40px;
+        color: #111;
+        line-height: 1.6;
+      ">
+        <div>
+          <h1 style="font-size:26px; margin-bottom:5px;">
+            MoneyMind Report
+            <span style="
+              float:right;
+              font-size:16px;
+              color:#2563eb;
+              font-weight:bold;
+            ">
+              Score: ${score} / 100
+            </span>
+          </h1>
+          <div style="color:#666; font-size:13px; margin-bottom:20px;">
+            Your financial behavior analysis
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
+
+        ${section("Personality", result.personality)}
+        ${section("Insight", result.insight)}
+        ${section("Action Plan", result.fix)}
+        ${section("Impact", result.impact)}
+
+        <div style="
+          margin-top:40px;
+          font-size:10px;
+          color:#999;
+        ">
+          Generated by MoneyMind • Behavioral Finance AI
         </div>
       </div>
-
-      <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
-
-      ${section("Personality", result.personality)}
-      ${section("Insight", result.insight)}
-      ${section("Action Plan", result.fix)}
-      ${section("Impact", result.impact)}
-
-      <div style="
-        margin-top:40px;
-        font-size:10px;
-        color:#999;
-      ">
-        Generated by MoneyMind • Behavioral Finance AI
-      </div>
-    </div>
-  `;
+    `;
 
     const opt = {
       margin: 0,
@@ -499,201 +237,843 @@ export default function AnalyzePage() {
   const fColor = sectionColors.fixes;
   const imColor = sectionColors.impact;
 
+  if (!session) {
+    return <NotFound />;
+  }
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-black text-white px-1.5 py-3 md:p-6">
-      {/* NAVBAR */}
-      <nav className="flex justify-between items-center max-w-6xl mx-auto mb-20 md:mb-5">
-        <Link
-          href={"/"}
-          className="text-xs md:text-xl font-bold cursor-pointer"
-        >
-          🧠 MoneyMind
-        </Link>
+    <div className="min-h-screen bg-black text-white px-3 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+       
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 bg-blue-500/10 blur-[120px]" />
+        </div>
 
-        {/* 👉 PRIMARY ACTION */}
-        <Link
-          href="/chat"
-          className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out"
-        >
-          Start Chat
-          <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
-        </Link>
-      </nav>
-      <h1 className="text-2xl font-bold text-center mb-6">
-        🧠 Analyze Your Money Behavior
-      </h1>
+     
+        <nav className="flex flex-wrap gap-3 justify-between items-center max-w-6xl mx-auto mb-6 md:mb-10">
+          <Link href="/" className="text-lg font-semibold">
+            🧠 MoneyMind
+          </Link>
 
-      {/* FORM */}
-      <div className="max-w-xl mx-auto space-y-4">
-        <input
-          placeholder="What do you spend most on? : e.g., books & stationaries"
-          value={spending}
-          onChange={(e) => setSpending(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
-        />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/chat"
+              className="bg-linear-to-r from-blue-500 to-purple-500 px-4 py-2 rounded-xl flex items-center gap-2 hover:scale-105 transition"
+            >
+              🤖 Ask AI
+              <ArrowRight size={16} />
+            </Link>
 
-        <input
-          placeholder="Your biggest money problem? : e.g., I keep buying new books I never read"
-          value={problem}
-          onChange={(e) => setProblem(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
-        />
-
-        <input
-          placeholder="Monthly income (₹) : e.g., ₹25000"
-          value={income}
-          onChange={(e) => setIncome(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
-        />
-
-        <div className="flex gap-1.5 justify-between items-center w-full h-16">
-          <div className="flex flex-col md:flex-row gap-1.5 justify-center md:justify-start items-start md:items-center cursor-pointer flex-1 text-xs md:text-sm  whitespace-pre-wrap">
-            Harsh Mode &nbsp;:
-            {harshMode ? (
-              <ToggleRight
-                onClick={() => setHarshMode(!harshMode)}
-                className="text-blue-500 text-xl"
-                size={36}
-                strokeWidth={1}
-              />
-            ) : (
-              <ToggleLeft
-                onClick={() => setHarshMode(!harshMode)}
-                className="text-white text-xl"
-                size={36}
-                strokeWidth={1}
-              />
+            {session && (
+              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-xl border border-white/10">
+                <span
+                  onClick={() => router.push("/profile")}
+                  className="text-xs text-gray-300 cursor-pointer"
+                >
+                  {session?.user?.name && (
+                    <>
+                      {session?.user?.name.length > 10 ? (
+                        <>{session?.user?.name.slice(0, 10)}..</>
+                      ) : (
+                        <>{session?.user?.name}</>
+                      )}
+                    </>
+                  )}
+                </span>
+                <div className="w-px h-3.25 bg-linear-to-r from-transparent via-white/20 to-transparent" />
+                <button
+                  onClick={() => signOut()}
+                  className="text-xs text-red-400"
+                >
+                  Logout
+                </button>
+              </div>
             )}
           </div>
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={harshMode ? "harsh" : "normal"}
-              initial={{ opacity: 0, y: 6, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`flex-2 text-xs md:text-sm ${harshMode ? "text-red-400" : "text-gray-400"}`}
-            >
-              {harshMode
-                ? "⚠️ Harsh Mode ON: Preparing to roast your financial habits..."
-                : "Too soft? Enable Harsh Mode for brutal honesty."}
-            </motion.span>
-          </AnimatePresence>
-        </div>
+        </nav>
 
-        <motion.button
-          disabled={loading}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleAnalyze}
-          className="w-full bg-blue-600 py-3 rounded-xl"
-        >
-          Analyze My Behavior 🚀
-        </motion.button>
-      </div>
-
-      {/* LOADING */}
-      {/* Loading / Streaming */}
-      {loading && !result && (
-        <div className="mt-6 whitespace-pre-wrap text-gray-400">
-          {streamText}
-          <span className="animate-pulse">|</span>
-        </div>
-      )}
-
-      {/* Final Result */}
-      {result && (
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mt-12 p-6 bg-gray-900 rounded-2xl border border-gray-800 text-left relative"
-        >
-          <ScoreCard result={result} score={score} />
-
-          <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-              className={`p-4 rounded-xl border ${iColor.border} ${iColor.bg}`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Lightbulb className={`w-4 h-4 ${iColor.title}`} />
-                <p className={`text-sm ${iColor.title}`}>INSIGHT</p>
-              </div>
-
-              <p className="text-gray-300 leading-relaxed">{result.insight}</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-              className={`p-4 rounded-xl border ${fColor.border} ${fColor.bg}`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Target className={`w-4 h-4 ${fColor.title}`} />
-                <p className={`text-sm ${fColor.title}`}>ACTION PLAN</p>
-              </div>
-
-              <ul className="list-disc ml-5 space-y-2 text-gray-300">
-                {result.fix
-                  .split(/\.\s+/)
-                  .map((item) => item.trim())
-                  .filter(Boolean)
-                  .map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-              </ul>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-              className={`p-4 rounded-xl border ${imColor.border} ${imColor.bg}`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingDown className={`w-4 h-4 ${imColor.title}`} />
-                <p className={`text-sm ${imColor.title}`}>IMPACT</p>
-              </div>
-
-              <p className="text-gray-300 leading-relaxed">{result.impact}</p>
-            </motion.div>
+        <div className="max-w-7xl mx-auto space-y-8">
+          
+          <div className="grid grid-cols-3 gap-4">
+            <Card title="Income" value={`₹${income || 0}`} />
+            <Card title="Spent" value={`₹${totalSpent}`} red />
+            <Card title="Left" value={`₹${totalAmount - totalSpent}`} green />
           </div>
 
-          <button
-            onClick={copyResult}
-            className="absolute right-12 text-xl top-1 cursor-pointer group"
-          >
-            🖥
-            <span
-              className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 
-                whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded 
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            
+            <div className="space-y-6">
+              
+              <GlassCard>
+                <p className="text-sm text-gray-400 mb-2">Monthly Income</p>
+                <input
+                  value={income}
+                  onChange={(e) => setIncome(e.target.value)}
+                  placeholder="₹25000"
+                  className="w-full p-3 text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </GlassCard>
+
+              
+              <GlassCard>
+                <div className="flex justify-between mb-4">
+                  <p className="text-sm text-gray-400">Transactions</p>
+                  <div className="flex justify-center items-center gap-2">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowUpload(true)}
+                        className="text-xs bg-purple-500/20 px-3 py-1 rounded-lg"
+                      >
+                        Upload
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="text-xs bg-blue-500/20 px-3 py-1 rounded-lg"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </div>
+
+                
+                {transactions.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <TransactionTable
+                      transactions={transactions}
+                      GlassCard={GlassCard}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    No transactions added yet.
+                  </p>
+                )}
+              </GlassCard>
+            </div>
+
+            
+            <div className="space-y-6">
+              
+              <GlassCard>
+                <div className="flex flex-row flex-wrap justify-between gap-2 mt-3">
+                  <p className="text-sm text-gray-400">Goals</p>
+
+                  <button
+                    onClick={() => setShowGoals(true)}
+                    className="text-xs bg-purple-500/20 px-3 py-1 rounded-lg"
+                  >
+                    View All
+                  </button>
+                </div>
+
+                {goals.length === 0 ? (
+                  <p className="text-xs text-gray-500">No goals added yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {goals.slice(0, 2).map((g, i) => (
+                      <div
+                        key={i}
+                        onClick={() => handleAskAI(g)}
+                        className="text-xs flex justify-between p-2 rounded-lg hover:bg-white/10 cursor-pointer transition"
+                      >
+                        <span>{g.title}</span>
+                        <span>₹{g.target}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                
+                <div className="flex gap-2 mt-3">
+                  <input
+                    placeholder="Goal"
+                    value={goalInput}
+                    onChange={(e) => setGoalInput(e.target.value)}
+                    className="w-full flex-2 p-3 text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  <input
+                    placeholder="₹"
+                    value={goalAmount}
+                    onChange={(e) => setGoalAmount(e.target.value)}
+                    className="w-full flex-1 p-3 text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  <button
+                    onClick={addGoal}
+                    className="bg-purple-500 px-3 rounded text-xs"
+                  >
+                    Add
+                  </button>
+                </div>
+              </GlassCard>
+            </div>
+          </div>
+
+          
+          {transactions.length > 0 && (
+            <GlassCard>
+              <p className="text-sm text-gray-400 mb-4">
+                🧠 Financial Analysis
+              </p>
+
+              {result && (
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="p-4 md:p-6 space-y-4 md:space-y-5 rounded-2xl bg-linear-to-br from-blue-500/10 to-purple-500/10 border border-white/10 backdrop-blur-xl shadow-xl"
+                >
+                  <ScoreCard result={result} score={score} />
+
+                  <div className="space-y-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{
+                        duration: 0.5,
+                        ease: "easeOut",
+                        delay: 0.2,
+                      }}
+                      className={`p-4 rounded-xl border ${iColor.border} ${iColor.bg}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className={`w-4 h-4 ${iColor.title}`} />
+                        <p className={`text-sm ${iColor.title}`}>INSIGHT</p>
+                      </div>
+
+                      <p className="text-gray-300 leading-relaxed">
+                        {result.insight}
+                      </p>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{
+                        duration: 0.5,
+                        ease: "easeOut",
+                        delay: 0.2,
+                      }}
+                      className={`p-4 rounded-xl border ${fColor.border} ${fColor.bg}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className={`w-4 h-4 ${fColor.title}`} />
+                        <p className={`text-sm ${fColor.title}`}>ACTION PLAN</p>
+                      </div>
+
+                      <ul className="list-disc ml-5 space-y-2 text-gray-300">
+                        {result.fix
+                          .split(/\.\s+/)
+                          .map((item) => item.trim())
+                          .filter(Boolean)
+                          .map((item, i) => (
+                            <li key={i}>{item}</li>
+                          ))}
+                      </ul>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{
+                        duration: 0.5,
+                        ease: "easeOut",
+                        delay: 0.2,
+                      }}
+                      className={`p-4 rounded-xl border ${imColor.border} ${imColor.bg}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingDown className={`w-4 h-4 ${imColor.title}`} />
+                        <p className={`text-sm ${imColor.title}`}>IMPACT</p>
+                      </div>
+
+                      <p className="text-gray-300 leading-relaxed">
+                        {result.impact}
+                      </p>
+                    </motion.div>
+                  </div>
+
+                  <button
+                    onClick={copyResult}
+                    className="absolute right-12 text-xl top-1 cursor-pointer group"
+                  >
+                    🖥
+                    <span
+                      className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2
+                whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded
                 opacity-0 group-hover:opacity-100 transition"
-            >
-              Copy
-            </span>
-          </button>
-          <button
-            onClick={downloadResult}
-            className="absolute right-3 top-1 text-xl cursor-pointer group"
-          >
-            ⬇️
-            <span
-              className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 
-                whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded 
+                    >
+                      Copy
+                    </span>
+                  </button>
+                  <button
+                    onClick={downloadResult}
+                    className="absolute right-3 top-1 text-xl cursor-pointer group"
+                  >
+                    ⬇️
+                    <span
+                      className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2
+                whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded
                 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      Download PDF
+                    </span>
+                  </button>
+                </motion.div>
+              )}
+            </GlassCard>
+          )}
+        </div>
+
+        
+        {aiGoalResult && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-999999999">
+            <div className="bg-black border border-white/10 rounded-2xl p-6 w-full max-w-md">
+              <div className="flex justify-between mb-4">
+                <h2 className="text-lg">🤖 AI Insight</h2>
+                <button onClick={() => setAiGoalResult("")}>✕</button>
+              </div>
+
+              <p className="text-sm text-gray-300 whitespace-pre-line">
+                {aiGoalResult}
+              </p>
+            </div>
+          </div>
+        )}
+
+        
+        {showGoals && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-3">
+            <div className="bg-black border border-white/10 rounded-2xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between mb-4">
+                <h2 className="text-lg">Your Goals</h2>
+                <button onClick={() => setShowGoals(false)}>✕</button>
+              </div>
+
+              <div className="space-y-4">
+                {goals.length > 0 ? (
+                  <>
+                    {goals.map((g, i) => {
+                      const progress = (g.saved / g.target) * 100;
+
+                      return (
+                        <div
+                          key={i}
+                          onClick={() => handleAskAI(g)}
+                          className="bg-white/5 p-3 rounded-lg"
+                        >
+                          <div className="flex justify-between mb-1">
+                            <span>{g.title}</span>
+                            <span className="text-xs">
+                              ₹{g.saved}/{g.target}
+                            </span>
+                          </div>
+
+                          <div className="h-2 bg-white/10 rounded">
+                            <div
+                              className="h-2 bg-linear-to-r from-blue-500 to-purple-500 rounded"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <p className="text-xs text-gray-500">No goals added yet.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        
+        {showModal && (
+          <AddTransactionModal
+            onAdd={(form: {
+              date: string;
+              mode: string;
+              category: string;
+              amount: string;
+              type: "Income" | "Expense";
+            }) => {
+              const newTransaction = form;
+              setTransactions((prev) => [...prev, newTransaction]);
+            }}
+            onClose={() => {
+              setShowModal(false);
+            }}
+          />
+        )}
+
+        
+        <UploadStatement
+          showUploadModal={showUpload}
+          setShowUploadModal={setShowUpload}
+          setTransactions={setTransactions}
+          setSummary={setSummary}
+        />
+
+       
+        <Link
+          href="/chat"
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-linear-to-r from-blue-500 to-purple-500 p-3 md:p-4 rounded-full shadow-xl"
+        >
+          🤖
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function GlassCard({
+  children,
+  gradient,
+}: {
+  children: React.ReactNode;
+  gradient?: boolean;
+}) {
+  return (
+    <div
+      className={`p-5 rounded-2xl border border-white/10 backdrop-blur-xl ${
+        gradient
+          ? "bg-linear-to-br from-green-500/10 to-blue-500/10"
+          : "bg-white/5"
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Card({
+  title,
+  value,
+  red,
+  green,
+}: {
+  title: string;
+  value: string;
+  red?: boolean;
+  green?: boolean;
+}) {
+  return (
+    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+      <p className="text-xs text-gray-400">{title}</p>
+      <p
+        className={`text-lg font-semibold ${
+          red ? "text-red-400" : green ? "text-green-400" : ""
+        }`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+  */
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, Lightbulb, Target, TrendingDown } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { motion } from "framer-motion";
+import AddTransactionModal from "@/components/AddTransactionModal";
+import TransactionTable from "@/components/TransactionTable";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import ScoreCard from "@/components/ScoreCard";
+import NotFound from "../not-found";
+import UploadStatement from "@/components/UploadStatement";
+
+export const sectionColors = {
+  personality: {
+    title: "text-purple-400",
+    border: "border-purple-500/20",
+    bg: "bg-purple-500/5",
+  },
+  insight: {
+    title: "text-blue-400",
+    border: "border-blue-500/20",
+    bg: "bg-blue-500/5",
+  },
+  fixes: {
+    title: "text-yellow-400",
+    border: "border-yellow-500/20",
+    bg: "bg-yellow-500/5",
+  },
+  impact: {
+    title: "text-red-400",
+    border: "border-red-500/20",
+    bg: "bg-red-500/5",
+  },
+};
+
+export default function Analyze() {
+  const { data: session } = useSession();
+  const [html2pdfInstance, setHtml2pdfInstance] = useState<any>(null);
+  const router = useRouter();
+
+  const [income,setIncome] = useState("0");
+
+  // ✅ Manual transactions
+  const [manualTransactions, setManualTransactions] = useState<any[]>([]);
+
+  // ✅ Statements
+  const [statements, setStatements] = useState<
+    {
+      _id: string;
+      fileName: string;
+      transactions: any[];
+    }[]
+  >([]);
+
+  const [selectedStatementId, setSelectedStatementId] = useState<string | null>(
+    null,
+  );
+  const [showUpload, setShowUpload] = useState(false);
+
+  // =========================
+  // 🧠 ALL TRANSACTIONS (AI USES THIS)
+  // =========================
+  const allTransactions = [
+    ...manualTransactions,
+    ...statements.flatMap((s) => s.transactions),
+  ];
+
+  // =========================
+  // 📄 SELECTED STATEMENT DATA
+  // =========================
+  const selectedTransactions =
+    statements.find((s) => s._id === selectedStatementId)?.transactions || [];
+
+  // =========================
+  // 📊 SUMMARY (BASED ON ALL DATA)
+  // =========================
+  const totalSpent = allTransactions
+    .filter((t) => t.type === "Expense")
+    .reduce((acc, t) => acc + Number(t.amount), 0);
+
+  const totalIncome = allTransactions
+    .filter((t) => t.type === "Income")
+    .reduce((acc, t) => acc + Number(t.amount), 0);
+
+
+  useEffect(() => {
+    // Dynamically import html2pdf.js on client
+    import("html2pdf.js").then((mod) => {
+      setHtml2pdfInstance(() => mod.default);
+    });
+  }, [])
+
+  // TODO : change monthly income on mouse out
+  const changeMonthlyIncome = async()=>{
+    const res = await fetch("/api/profile",{
+      method:"PATCH",
+      body:JSON.stringify({
+        financeId:"",
+        monthlyIncome:Number(income)
+      })
+    })
+  }
+
+  // helper
+  const section = (title: string, content: string) => `
+    <div style="margin-bottom:20px;">
+      <div style="
+        font-size:12px;
+        color:#888;
+        font-weight:bold;
+        margin-bottom:5px;
+        text-transform:uppercase;
+      ">
+        ${title}
+      </div>
+      <div>${content}</div>
+    </div>
+  `;
+
+  // const downloadResult = () => {
+  //   if (!html2pdfInstance || !result) {
+  //     toast.error("Can't download result! Please try again later.");
+  //     return;
+  //   }
+
+  //   const element = document.createElement("div");
+
+  //   element.innerHTML = `
+  //     <div style="
+  //       font-family: Arial, sans-serif;
+  //       padding: 40px;
+  //       color: #111;
+  //       line-height: 1.6;
+  //     ">
+  //       <div>
+  //         <h1 style="font-size:26px; margin-bottom:5px;">
+  //           MoneyMind Report
+  //           <span style="
+  //             float:right;
+  //             font-size:16px;
+  //             color:#2563eb;
+  //             font-weight:bold;
+  //           ">
+  //             Score: ${score} / 100
+  //           </span>
+  //         </h1>
+  //         <div style="color:#666; font-size:13px; margin-bottom:20px;">
+  //           Your financial behavior analysis
+  //         </div>
+  //       </div>
+
+  //       <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
+
+  //       ${section("Personality", result.personality)}
+  //       ${section("Insight", result.insight)}
+  //       ${section("Action Plan", result.fix)}
+  //       ${section("Impact", result.impact)}
+
+  //       <div style="
+  //         margin-top:40px;
+  //         font-size:10px;
+  //         color:#999;
+  //       ">
+  //         Generated by MoneyMind • Behavioral Finance AI
+  //       </div>
+  //     </div>
+  //   `;
+
+  //   const opt = {
+  //     margin: 0,
+  //     filename: "MoneyMind-Report.pdf",
+  //     image: { type: "jpeg", quality: 0.98 },
+  //     html2canvas: { scale: 2 },
+  //     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+  //   } as const;
+
+  //   html2pdfInstance().set(opt).from(element).save();
+  // };
+
+  const iColor = sectionColors.insight;
+  const fColor = sectionColors.fixes;
+  const imColor = sectionColors.impact;
+
+  if (!session) {
+    return <NotFound />;
+  }
+
+  return (
+    <div className="min-h-screen h-auto bg-black text-white px-3 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+        {/* BACKGROUND GLOW */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 bg-blue-500/10 blur-[120px]" />
+        </div>
+
+        {/* NAVBAR */}
+        <nav className="flex flex-wrap gap-3 justify-between items-center max-w-6xl mx-auto mb-6 md:mb-10">
+          <Link href="/" className="text-lg font-semibold">
+            🧠 MoneyMind
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/chat"
+              className="bg-linear-to-r from-blue-500 to-purple-500 px-4 py-2 rounded-xl flex items-center gap-2 hover:scale-105 transition"
             >
-              Download PDF
-            </span>
-          </button>
-        </motion.div>
-      )}
+              🤖 Ask AI
+              <ArrowRight size={16} />
+            </Link>
+
+            {session && (
+              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-xl border border-white/10">
+                <span
+                  onClick={() => router.push("/profile")}
+                  className="text-xs text-gray-300 cursor-pointer"
+                >
+                  {session?.user?.name && (
+                    <>
+                      {session?.user?.name.length > 10 ? (
+                        <>{session?.user?.name.slice(0, 10)}..</>
+                      ) : (
+                        <>{session?.user?.name}</>
+                      )}
+                    </>
+                  )}
+                </span>
+                <div className="w-px h-3.25 bg-linear-to-r from-transparent via-white/20 to-transparent" />
+                <button
+                  onClick={() => signOut()}
+                  className="text-xs text-red-400 cursor-pointer"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* SUMMARY */}
+        <div className="grid grid-cols-3 gap-4">
+          <GlassCard>
+            <p className="text-xs text-gray-400 mb-1">Monthly Income</p>
+            <input
+              value={income}
+              onChange={(e) => setIncome(e.target.value)}
+              placeholder="₹25000"
+              className="w-full p-3 text-base md:text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </GlassCard>
+          <Card title="Spent" value={`₹${totalSpent}`} />
+          <Card title="Balance" value={`₹${totalIncome - totalSpent}`} />
+        </div>
+
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LEFT: STATEMENTS */}
+          <div className="space-y-4">
+            <GlassCard>
+              <div className="flex justify-between mb-3">
+                <p className="text-sm text-gray-400">Statements</p>
+
+                <button
+                  onClick={() => setShowUpload(true)}
+                  className="text-xs bg-purple-500/20 px-3 py-1 rounded"
+                >
+                  Upload
+                </button>
+              </div>
+
+              {statements.length === 0 ? (
+                <p className="text-xs text-gray-500">No statements uploaded</p>
+              ) : (
+                <div className="space-y-2">
+                  {statements.map((s) => (
+                    <div
+                      key={s._id}
+                      onClick={() => setSelectedStatementId(s._id)}
+                      className={`p-2 rounded cursor-pointer text-xs ${
+                        selectedStatementId === s._id
+                          ? "bg-blue-500/20"
+                          : "bg-white/5 hover:bg-white/10"
+                      }`}
+                    >
+                      📄 {s.fileName}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </GlassCard>
+
+            {/* TRANSACTIONS */}
+            <GlassCard>
+              <p className="text-sm text-gray-400 mb-3">
+                Transactions {selectedStatementId && "(Selected Statement)"}
+              </p>
+
+              {selectedTransactions.length > 0 ? (
+                <TransactionTable
+                  transactions={selectedTransactions}
+                  GlassCard={GlassCard}
+                />
+              ) : (
+                <p className="text-xs text-gray-500">
+                  Select a statement to view transactions
+                </p>
+              )}
+            </GlassCard>
+          </div>
+
+          {/* RIGHT: AI SUMMARY */}
+          <div className="space-y-4">
+            <GlassCard>
+              <p className="text-sm text-gray-400 mb-3">
+                🧠 AI Analysis (All Statements)
+              </p>
+
+              {allTransactions.length === 0 ? (
+                <p className="text-xs text-gray-500">
+                  Upload statements to see analysis
+                </p>
+              ) : (
+                <div className="text-sm space-y-2">
+                  <p>💸 Total Spent: ₹{totalSpent}</p>
+                  <p>💰 Total Income: ₹{totalIncome}</p>
+
+                  <p className="text-gray-400 text-xs mt-2">
+                    (AI will use all uploaded data)
+                  </p>
+                </div>
+              )}
+            </GlassCard>
+          </div>
+        </div>
+
+        {/* UPLOAD */}
+        <UploadStatement
+          showUploadModal={showUpload}
+          setShowUploadModal={setShowUpload}
+          setTransactions={setManualTransactions}
+        />
+
+        {/* FLOATING AI */}
+        <Link
+          href="/chat"
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-linear-to-r from-blue-500 to-purple-500 p-3 md:p-4 rounded-full shadow-xl"
+        >
+          🤖
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/* COMPONENTS */
+
+function GlassCard({
+  children,
+  gradient,
+}: {
+  children: React.ReactNode;
+  gradient?: boolean;
+}) {
+  return (
+    <div
+      className={`p-5 rounded-2xl border border-white/10 backdrop-blur-xl ${
+        gradient
+          ? "bg-linear-to-br from-green-500/10 to-blue-500/10"
+          : "bg-white/5"
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Card({
+  title,
+  value,
+  red,
+  green,
+}: {
+  title: string;
+  value: string;
+  red?: boolean;
+  green?: boolean;
+}) {
+  return (
+    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+      <p className="text-xs text-gray-400">{title}</p>
+      <p
+        className={`text-lg font-semibold ${
+          red ? "text-red-400" : green ? "text-green-400" : ""
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
