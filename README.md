@@ -92,7 +92,9 @@ AI responds with:
   - 🎉 Goal achieved
   - 🚀 Progress updates
   - ⚠️ Risk alerts
+  
 
+  We separated lightweight ingestion jobs and heavy AI analysis into independently scheduled workers to optimize cost and performance.
 ---
 
 ### 📧 Weekly Reports

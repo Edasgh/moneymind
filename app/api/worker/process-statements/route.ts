@@ -40,6 +40,12 @@ async function processStatement(stmt: any) {
 // =========================
 export async function GET(req: Request) {
   console.log("🚀 Worker started at:", new Date().toISOString());
+  const url = new URL(req.url);
+  const secret = url.searchParams.get("secret");
+
+  if (secret !== process.env.WORKER_SECRET) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   await connectDB();
 
@@ -155,5 +161,5 @@ export async function GET(req: Request) {
     processed,
     success,
     failed,
-  });
+  },{status:200});
 }

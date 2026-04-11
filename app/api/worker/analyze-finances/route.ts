@@ -216,6 +216,12 @@ function getEmailTemplate(data: any) {
 // =========================
 export async function GET(req: Request) {
   console.log("🚀 Worker started at:", new Date().toISOString());
+  const url = new URL(req.url);
+  const secret = url.searchParams.get("secret");
+
+  if (secret !== process.env.WORKER_SECRET) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   await connectDB();
 
@@ -231,7 +237,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       processed: 0,
       message: "No finance data found",
-    });
+    },{status:404});
   }
 
   for (const finance of finances) {
@@ -513,20 +519,5 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ processed });
+  return NextResponse.json({ processed },{status:200});
 }
-
-/*
-
-<div className="bg-gray-900 p-4 rounded-xl">
-  <p className="text-sm text-gray-400">Next Month Prediction</p>
-
-  <h2 className="text-2xl font-bold text-white">
-    ₹{finance.prediction?.nextMonthExpense}
-  </h2>
-
-  <p className="text-xs text-gray-400">
-    {finance.prediction?.reason}
-  </p>
-</div>
-*/

@@ -1,0 +1,30 @@
+name: Worker Jobs
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # runs every 5 minutes
+  workflow_dispatch:        # allows manual trigger
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Process Statements API
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.BASE_URL }}/api/worker/process-statements?secret=${{ secrets.WORKER_SECRET }}")
+        
+          if [ "$response" -ne 200 ]; then
+          echo "❌ API failed with status $response"
+          exit 1
+          fi
+
+      - name: Call Analyze Finances API (hourly only)
+        run: |
+          MINUTE=$(date +%M)
+
+          if [ "$MINUTE" = "00" ]; then
+            curl -X GET "${{ secrets.BASE_URL }}/api/worker/analyze-finances?secret=${{ secrets.WORKER_SECRET }}"
+          else
+            echo "Skipping analysis this run"
+          fi
