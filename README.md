@@ -1,4 +1,4 @@
-# [🧠 MoneyMind](https://moneymind-nomics.vercel.app/)
+# [🧠 MoneyMind](https://moneymind-git-version110-eshita-das-projects.vercel.app/)
 
 > **An autonomous financial agent that analyzes spending, predicts future outcomes, and helps users make smarter financial decisions.**
 

@@ -41,7 +41,7 @@ It also:
 
 ---
 
-## 🛠️ How we built it
+## 🛠️ How I built it
 
 We built MoneyMind AI as a full-stack AI-powered SaaS application:
 
