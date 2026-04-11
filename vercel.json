@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/worker/process-statements",
-      "schedule": "* * * * *"
+      "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/worker/analyze-finances",
-      "schedule": "* * * * *"
+      "schedule": "0 * * * *"
     }
   ]
 }

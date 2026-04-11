@@ -249,7 +249,7 @@ export default function Home() {
           automatically.
         </p>
       </section>
-      {/* <motion.section
+      <motion.section
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -267,7 +267,7 @@ export default function Home() {
       
       <div className="flex justify-center items-center">
         <DemoChat />
-      </div> */}
+      </div>
 
       {/* HOW IT WORKS */}
       <div id="how-it-works">

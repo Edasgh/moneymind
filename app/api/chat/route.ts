@@ -101,9 +101,15 @@ export async function POST(req: Request) {
       userId: session.user.id,
     });
 
+    if (!finance) {
+      return Response.json({
+        reply: "I need your financial data first. Upload a statement.",
+      });
+    }
+
     let allTransactions: any[] = [];
 
-    if (finance?.statements?.length) {
+    if (finance.statements?.length) {
       const statements = await Statement.find({
         _id: { $in: finance.statements },
         status: "parsed",
@@ -153,7 +159,7 @@ export async function POST(req: Request) {
         : "No transaction data available";
 
     const chatHistory =
-      history?.slice(-6).map((m: any) => ({
+      history?.map((m: any) => ({
         role: m.type === "user" ? "user" : "model",
         parts: [{ text: m.text }],
       })) || [];

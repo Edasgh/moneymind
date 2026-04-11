@@ -4,15 +4,15 @@ import { connectDB } from "@/lib/db";
 import Finance from "@/models/Finance";
 import Statement from "@/models/Statement";
 import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 const gemini_apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(gemini_apiKey!!);
 
-
 export async function POST(req: Request) {
   await connectDB();
 
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return Response.json({ question: "Unauthorized" }, { status: 401 });
   }
@@ -26,9 +26,15 @@ export async function POST(req: Request) {
     userId: session.user.id,
   });
 
+  if (!finance) {
+    return Response.json({
+      question: "I need your financial data first. Upload a statement.",
+    });
+  }
+
   let allTransactions: any[] = [];
 
-  if (finance?.statements?.length) {
+  if (finance.statements?.length) {
     const statements = await Statement.find({
       _id: { $in: finance.statements },
       status: "parsed",
@@ -44,7 +50,7 @@ export async function POST(req: Request) {
   // =========================
   // 🧠 PROMPT
   // =========================
-const systemPrompt = `
+  const systemPrompt = `
 You are MoneyMind, a sharp financial behavior coach.
 
 Your job:

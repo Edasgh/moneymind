@@ -2,7 +2,10 @@
 
 import { FormEvent, useState } from "react";
 
-export default function AddTransactionModal({ onClose, onAdd }: any) {
+export default function AddTransactionModal({
+  onClose,
+  onAdd,
+}: any) {
   const [form, setForm] = useState({
     date: "",
     mode: "",
@@ -15,7 +18,7 @@ export default function AddTransactionModal({ onClose, onAdd }: any) {
     setForm({ ...form, [key]: value });
   };
 
-  const handleSubmit = (e:FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!form.date || !form.amount) return;
 

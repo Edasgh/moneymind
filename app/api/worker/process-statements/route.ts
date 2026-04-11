@@ -38,7 +38,9 @@ async function processStatement(stmt: any) {
 // =========================
 // 🚀 WORKER ROUTE
 // =========================
-export async function GET() {
+export async function GET(req: Request) {
+  console.log("🚀 Worker started at:", new Date().toISOString());
+
   await connectDB();
 
   const now = new Date();

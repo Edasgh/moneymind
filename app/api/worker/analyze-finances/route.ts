@@ -131,15 +131,15 @@ export async function sendEmail(
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.GOOGLE_ACCOUNT_USER,
+        pass: process.env.GOOGLE_ACCOUNT_PASS,
       },
     });
 
     const html = getEmailTemplate(data);
 
     await transporter.sendMail({
-      from: `"Moneymind AI" <${process.env.EMAIL_USER}>`,
+      from: `"Moneymind AI" <${process.env.GOOGLE_ACCOUNT_USER}>`,
       to: user.email,
       subject: "📊 Your Weekly Financial Report",
       html,
@@ -214,7 +214,9 @@ function getEmailTemplate(data: any) {
 // =========================
 // 🚀 WORKER
 // =========================
-export async function GET() {
+export async function GET(req: Request) {
+  console.log("🚀 Worker started at:", new Date().toISOString());
+
   await connectDB();
 
   const now = new Date();
