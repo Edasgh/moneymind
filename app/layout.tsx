@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
+import Providers from "@/components/Providers";
+import NotificationToaster from "@/components/NotificationToaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,26 +28,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-      <body className="min-h-full flex flex-col overflow-x-hidden">
-        <ToastContainer
-          position="top-right"
-          autoClose={2000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick={false}
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
-        {children}
-      </body>
-    </html>
+    <Providers>
+      <html
+        lang="en"
+        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+        suppressHydrationWarning
+        suppressContentEditableWarning
+      >
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <body
+          className="min-h-full flex flex-col overflow-x-hidden"
+          suppressHydrationWarning
+          suppressContentEditableWarning
+        >
+          <ToastContainer
+            position="top-right"
+            autoClose={2000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+          <NotificationToaster/>
+          {children}
+        </body>
+      </html>
+    </Providers>
   );
 }

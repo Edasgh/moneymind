@@ -1,105 +1,197 @@
+"use server";
+import { connectDB } from "@/lib/db";
+import Finance from "@/models/Finance";
+import Statement from "@/models/Statement";
+import { getServerSession } from "next-auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { canAfford } from "@/lib/canAfford";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY!);
 
+function extractGoalFromMessage(message: string) {
+  const amountMatch = message.match(/₹?\s?(\d+[,\d]*)/);
+  const amount = amountMatch ? Number(amountMatch[1].replace(/,/g, "")) : null;
+
+  let title = "Goal";
+
+  if (/car/i.test(message)) title = "Car";
+  else if (/bike/i.test(message)) title = "Bike";
+  else if (/house|home|apartment|flat/i.test(message)) title = "House";
+
+  return amount ? { title, amount } : null;
+}
+
+function extractAmount(text: string) {
+  const match = text.match(/₹?\s?(\d+[,\d]*)/);
+  if (!match) return 0;
+
+  return Number(match[1].replace(/,/g, ""));
+}
+
 export async function POST(req: Request) {
   try {
+    await connectDB();
+
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return Response.json({ reply: "Unauthorized" }, { status: 401 });
+    }
+
     const { message, history } = await req.json();
 
-    // 🧠 SYSTEM PROMPT (Conversational Mode)
-   const systemPrompt = `
-    You are MoneyMind — a sharp, human-like AI behavioral finance coach.
+    const isAffordQuery = /(afford|buy|purchase)/i.test(message);
 
-    GOAL:
-    Help users fix money habits by identifying the real behavioral trigger behind their actions.
+    if (isAffordQuery) {
+      // extract price (basic regex)
+      const price = extractAmount(message);
 
-    HOW YOU THINK:
-    - Don’t just respond — diagnose
-    - Always look for the hidden pattern (impulse, stress, boredom, social pressure, dopamine, avoidance)
+      const finance = await Finance.findOne({ userId: session.user.id });
 
-    RESPONSE FLOW (IMPORTANT):
-    1. Start with a direct observation (not generic empathy)
-    2. Name the behavior clearly (be slightly bold)
-    3. Give 1 specific, realistic fix (₹, limits, rules, habit tweak)
-    4. End with a short question that makes them reflect
+      if (!finance) {
+        return Response.json({
+          reply: "I need your financial data first. Upload a statement.",
+        });
+      }
 
-    TONE:
-    - Crisp, conversational, and human
-    - Slightly bold honesty (call things out, but don’t judge)
-    - Feels like a smart friend, not a therapist
-    - No fluff, no over-explaining
-    - Indian context when relevant (₹, UPI, Swiggy, Zomato, Amazon)
+      const lastSnapshot = finance.aiHistory?.at(-1)?.snapshot;
 
-    STYLE RULES:
-    - Max 2–3 sentences (strict)
-    - Short and punchy lines
-    - Avoid filler phrases like:
-      "I understand", "It's important to", "You should consider"
-    - Use at most 1 emoji (optional)
+      if (!lastSnapshot) {
+        return Response.json({
+          reply: "I don't have enough data yet. Try uploading a statement.",
+        });
+      }
 
-    BEHAVIOR RULES:
-    - If it's impulse → call it out directly
-    - If it's emotional → acknowledge briefly, then redirect
-    - If repeated → point it out clearly
-    - If vague → ask a sharp follow-up
+      const goalData = extractGoalFromMessage(message);
 
-    STRICT OUTPUT:
+      if (goalData) {
+        const alreadyExists = finance.goals.some(
+          (g: any) =>
+            g.title === goalData.title && g.targetAmount === goalData.amount,
+        );
+
+        if (!alreadyExists) {
+          finance.goals.push({
+            title: goalData.title,
+            targetAmount: goalData.amount,
+            status: "active",
+          });
+
+          await finance.save();
+        }
+      }
+
+      const savings = lastSnapshot.income - lastSnapshot.totalSpent;
+
+      const result = canAfford({
+        savings,
+        price,
+        monthlySavings: savings,
+      });
+
+      return Response.json({
+        reply: `${result.decision === "YES" ? "✅ Yes" : "❌ No"} — ${result.reason}. ${result.suggestion || ""}`,
+      });
+    }
+
+    // =========================
+    // 📊 FETCH USER FINANCE
+    // =========================
+    const finance = await Finance.findOne({
+      userId: session.user.id,
+    });
+
+    if (!finance) {
+      return Response.json({
+        reply: "I need your financial data first. Upload a statement.",
+      });
+    }
+
+    let allTransactions: any[] = [];
+
+    if (finance.statements?.length) {
+      const statements = await Statement.find({
+        _id: { $in: finance.statements },
+        status: "parsed",
+      });
+
+      statements.forEach((s) => {
+        allTransactions.push(...(s.extractedTransactions || []));
+      });
+    }
+
+    // 🔥 LIMIT DATA (VERY IMPORTANT)
+    const safeTransactions = allTransactions.slice(-100);
+
+    // =========================
+    // 🧠 SYSTEM PROMPT
+    // =========================
+    const systemPrompt = `
+    You are MoneyMind — a behavioral finance AI.
+
+    You have access to:
+    1. User chat history
+    2. Real transaction data
+
+    Use REAL DATA when available. Be specific.
+
+    RULES:
+    - Max 2–3 sentences
+    - Be sharp and slightly bold
+    - Identify behavior patterns
+    - Give 1 actionable fix
+    - End with a question
+
+    If no transaction data:
+    → Ask user about their spending instead
+
+    STRICT:
     - Plain text only
     - No markdown
-    - No lists
-    - No headings
-    - No formatting symbols
-    - No explanations outside the reply
-
-    GOOD EXAMPLE:
-    "This looks like impulse spending, not a real need. Try setting a ₹300 weekly cap for Swiggy and stick to it. What usually triggers these orders — boredom or stress?"
-
-    BAD EXAMPLE:
-    "I understand your concern. You should try budgeting better."
-
-    Always sound natural, sharp, and a bit bold.
     `;
 
-        let finalPrompt = ``;
-        if(history && history.length!==0){
+    // =========================
+    // 🧠 BUILD CONTEXT
+    // =========================
+    const transactionContext =
+      safeTransactions.length > 0
+        ? `User Transactions:\n${JSON.stringify(safeTransactions)}`
+        : "No transaction data available";
 
-            const chatHistory = history
-            ?.map((m: any) => `${m.type === "user" ? "User" : "AI"}: ${m.text}`)
-            .join("\n");
-
-            finalPrompt = `
-            ${chatHistory}
-
-            --------------
-
-            User: ${message}
-            AI:
-            `;
-        }else{
-             finalPrompt = `
-        User : ${message}
-        AI :
-        `;
-        }
+    const chatHistory =
+      history?.map((m: any) => ({
+        role: m.type === "user" ? "user" : "model",
+        parts: [{ text: m.text }],
+      })) || [];
 
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash-lite",
       systemInstruction: systemPrompt,
     });
 
-    const result = await model.generateContent(finalPrompt);
-    const text = result.response
-      .text()
-      .replace(/[*#`>-]/g, "") // remove markdown symbols
-      .replace(/\n{2,}/g, "\n")
-      .trim();
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: transactionContext }],
+        },
+        ...chatHistory,
+        {
+          role: "user",
+          parts: [{ text: message }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.6,
+        maxOutputTokens: 120,
+      },
+    });
+
+    const text = result.response.text().trim();
 
     return Response.json({ reply: text });
-  } catch (error) {
-    console.error(error);
-    return Response.json(
-      { reply: "Something went wrong. Try again." },
-      { status: 500 },
-    );
+  } catch (err) {
+    console.error(err);
+    return Response.json({ reply: "Something went wrong." }, { status: 500 });
   }
 }

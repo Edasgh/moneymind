@@ -4,13 +4,20 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import NotFound from "../not-found";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<{type:string,text:string}[]>([]);
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [messages, setMessages] = useState<{ type: string; text: string }[]>(
+    [],
+  );
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement|null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const sendMessage = async () => {
     if (!input) return;
@@ -32,8 +39,8 @@ export default function ChatPage() {
 
       setMessages((prev) => [...prev, { type: "bot", text: data.reply }]);
     } catch (error) {
-       console.log("Error while messaging : ", error);
-       toast.error("Something went wrong! Please try again later");
+      console.log("Error while messaging : ", error);
+      toast.error("Something went wrong! Please try again later");
     }
 
     setLoading(false);
@@ -54,16 +61,22 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, followUpMsg]);
       inputRef.current?.focus();
     } catch (error) {
-      console.log("Error while follow up : ",error);
+      console.log("Error while follow up : ", error);
       toast.error("Something went wrong! Please try again later");
     }
 
     setLoading(false);
   };
 
+    if(!session){
+      return(
+        <NotFound/>
+      )
+    }
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-black text-white px-1.5 py-3 md:p-6">
-      <nav className="flex justify-between items-center max-w-6xl mx-auto">
+      <nav className="flex flex-wrap gap-3 justify-between items-center max-w-6xl mx-auto mb-6 md:mb-10">
         <Link
           href={"/"}
           className="text-xs md:text-xl font-bold cursor-pointer"
@@ -71,14 +84,42 @@ export default function ChatPage() {
           🧠 MoneyMind
         </Link>
 
-        {/* 👉 PRIMARY ACTION */}
-        <Link
-          href={"/analyze"}
-          className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out"
-        >
-          Try Now{" "}
-          <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* 👉 PRIMARY ACTION */}
+          <Link
+            href={"/analyze"}
+            className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out"
+          >
+            Try Now{" "}
+            <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
+          </Link>
+
+          {session && (
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-xl border border-white/10">
+              <span
+                onClick={() => router.push("/profile")}
+                className="text-xs text-gray-300 cursor-pointer"
+              >
+                {session?.user?.name && (
+                  <>
+                    {session?.user?.name.length > 10 ? (
+                      <>{session?.user?.name.slice(0, 10)}..</>
+                    ) : (
+                      <>{session?.user?.name}</>
+                    )}
+                  </>
+                )}
+              </span>
+              <div className="w-px h-3.25 bg-linear-to-r from-transparent via-white/20 to-transparent" />
+              <button
+                onClick={() => signOut()}
+                className="text-xs text-red-400"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </nav>
 
       <div className="max-w-3xl mx-auto mt-10 text-center">
@@ -100,9 +141,9 @@ export default function ChatPage() {
 
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               {[
-                "I spend too much on Swiggy",
-                "I can't save money",
-                "I keep impulse buying",
+                "Can I afford a car?",
+                "How can I save more?",
+                "What am I doing wrong?",
               ].map((q, i) => (
                 <button
                   key={i}
@@ -155,8 +196,8 @@ export default function ChatPage() {
               </span>
             </div>
 
-           {/* If last message, ask ai to ask follow up questions  */}
-            {msg.type === "bot" && messages[messages.length-1] === msg && (
+            {/* If last message, ask ai to ask follow up questions  */}
+            {msg.type === "bot" && messages[messages.length - 1] === msg && (
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={handleFollowUp}

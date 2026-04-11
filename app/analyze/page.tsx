@@ -1,17 +1,28 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { ArrowRight, Lightbulb, Target, TrendingDown } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { motion } from "framer-motion";
+import AddTransactionModal from "@/components/AddTransactionModal";
+import TransactionTable from "@/components/TransactionTable";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import {
-  ArrowRight,
-  Lightbulb,
-  Target,
-  ToggleLeft,
-  ToggleRight,
-  TrendingDown,
-} from "lucide-react";
-import ScoreCard from "../components/ScoreCard";
+import ScoreCard from "@/components/ScoreCard";
+import NotFound from "../not-found";
+import UploadStatement from "@/components/UploadStatement";
+
+import { useFinance } from "@/hooks/useFinance";
+import SpendingChart from "@/components/SpendingCharts";
+
+type Transaction = {
+  amount: number;
+  category: string;
+  type: "Income" | "Expense";
+  mode: string;
+  date: string;
+};
 
 export const sectionColors = {
   personality: {
@@ -36,381 +47,64 @@ export const sectionColors = {
   },
 };
 
-export default function AnalyzePage() {
-  const [spending, setSpending] = useState("");
-  const [problem, setProblem] = useState("");
-  const [income, setIncome] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
-  const [streamText, setStreamText] = useState(""); // for live typing
-  const [result, setResult] = useState<{
-    personality: string;
-    insight: string;
-    fix: string;
-    impact: string;
-  } | null>(null);
+export default function Analyze() {
+  const { data: session } = useSession();
+  const { finance, statements: fianceStatements } = useFinance();
+  const latestAnalysis = finance?.aiHistory?.at(-1);
 
-  const [loading, setLoading] = useState(false);
-  const [score, setScore] = useState(0);
-  const [harshMode, setHarshMode] = useState(false);
+  const [simulateValue, setSimulateValue] = useState(0);
+  const [simulatedExpense, setSimulatedExpense] = useState<number | null>(null);
   const [html2pdfInstance, setHtml2pdfInstance] = useState<any>(null);
 
-  // Fallback: categorize spending based on all inputs
-  const fallbackCategorizeSpending = ({
-    spending,
-    problem,
-    income,
-  }: {
-    spending: string;
-    problem: string;
-    income: string;
-  }) => {
-    const text = spending.toLowerCase();
-    const prob = problem.toLowerCase();
-    const inc = Number(income);
+  const router = useRouter();
 
-    // Base category from spending
-    let category: "essential" | "lifestyle" | "impulsive" = "lifestyle";
+  const [income, setIncome] = useState("0");
 
-    if (/rent|food|bills|groceries|education|medical/.test(text))
-      category = "essential";
-    else if (
-      /shopping|clothes|books|gym|travel|subscriptions|amazon|netflix|makeup/.test(
-        text,
-      )
-    )
-      category = "lifestyle";
-    else if (/zomato|swiggy|fast food|luxury|party|alcohol|gambling/.test(text))
-      category = "impulsive";
+  const [showAddModal, setShowAddModal] = useState(false);
+  // ✅ Manual transactions
+  const [manualTransactions, setManualTransactions] = useState<any[]>([]);
 
-    // Adjust category based on problem awareness
-    if (
-      category === "lifestyle" &&
-      /debt|overspending|loan|no savings/.test(prob)
-    ) {
-      category = "impulsive"; // bad habits escalate risk
-    }
+  // ✅ Statements
+  const [statements, setStatements] = useState<
+    {
+      _id: string;
+      fileName: string;
+      status: string;
+      extractedTransactions?: any[];
+      summary?: any;
+    }[]
+  >([]);
 
-    // Adjust category based on very low income
-    if (category !== "essential" && inc <= 10000) {
-      category = "impulsive"; // risky if income is too low
-    }
+  const [selectedStatementId, setSelectedStatementId] = useState<string | null>(
+    null,
+  );
+  const [showUpload, setShowUpload] = useState(false);
 
-    return category;
-  };
+  // =========================
+  // 🧠 ALL TRANSACTIONS (AI USES THIS)
+  // =========================
+  const allTransactions = [
+    ...manualTransactions,
+    ...statements.flatMap((s) => s.extractedTransactions),
+  ];
 
-  // Fallback: calculate score out of 100 based on spending, problem, income
-  const fallbackCalculateScore = ({
-    spending,
-    problem,
-    income,
-  }: {
-    spending: string;
-    problem: string;
-    income: string;
-  }) => {
-    let score = 0;
-    const spend = spending.toLowerCase();
-    const prob = problem.toLowerCase();
-    const inc = Number(income);
+  // =========================
+  // 📄 SELECTED STATEMENT DATA
+  // =========================
+  const selectedTransactions =
+    statements.find((s) => s._id === selectedStatementId)
+      ?.extractedTransactions || [];
 
-    // -------------------------
-    // 1️⃣ Spending (0–40)
-    // -------------------------
-    if (/rent|food|bills|groceries|education|medical/.test(spend)) score += 35;
-    else if (
-      /shopping|clothes|books|gym|travel|subscriptions|amazon|netflix|makeup/.test(
-        spend,
-      )
-    )
-      score += 25;
-    else if (
-      /zomato|swiggy|fast food|luxury|party|alcohol|gambling/.test(spend)
-    )
-      score += 10;
-    else score += 20; // neutral
+  // =========================
+  // 📊 SUMMARY (BASED ON ALL DATA)
+  // =========================
+  const totalSpent = allTransactions
+    .filter((t) => t.type === "Expense")
+    .reduce((acc, t) => acc + Number(t.amount), 0);
 
-    // -------------------------
-    // 2️⃣ Problem Awareness (0–30)
-    // -------------------------
-    if (/debt|overspending|loan|no savings/.test(prob))
-      score += 10; // low awareness, bad
-    else if (/saving|budget|expenses/.test(prob))
-      score += 20; // medium awareness
-    else score += 15; // neutral
-
-    // -------------------------
-    // 3️⃣ Income (0–30)
-    // -------------------------
-    if (!inc || inc <= 0) score += 5;
-    else if (inc > 50000) score += 30;
-    else if (inc > 20000) score += 20;
-    else score += 15;
-
-    return Math.min(Math.round(score), 100);
-  };
-
-  const analyzeSpending = async (
-    spending: string,
-    income: string,
-    problem: string,
-  ) => {
-    setLoading(true);
-    setStreamText("");
-    setStreamText("Analyzing spending behaviour...\n");
-
-    setTimeout(() => {
-      setStreamText((prev) => prev + "Classifying behavior...\n");
-    }, 700);
-
-    try {
-      const res = await fetch("/api/classify", {
-        method: "POST",
-        body: JSON.stringify({ spending, income, problem }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const data = await res.json();
-      let finalScore = 0;
-      let finalCategory: string | null = null;
-      if (!data || data.category === "unknown") {
-        finalScore = 0;
-        finalCategory = null;
-      } else {
-        // console.log("data from analyseSpending : ",data);
-
-        // Normalize score to percentage
-        // Maximum possible score per item is 8 (essential)
-
-        finalScore = data.score > 100 ? 100 : data.score;
-        finalCategory = data.category;
-      }
-
-      setScore(finalScore);
-      setCategory(finalCategory);
-    } catch (error) {
-      console.log("Error in analyze spending : ", error);
-      // Fallback
-      const finalCategory = fallbackCategorizeSpending({
-        spending,
-        problem,
-        income,
-      });
-      const finalScore = fallbackCalculateScore({ spending, problem, income });
-
-      setScore(finalScore);
-      setCategory(finalCategory);
-    }
-  };
-
-  // Fallback : generate personality based on category & score
-  const getPersonality = (
-    score: number,
-    category: string | null,
-    harshMode: boolean,
-  ): string => {
-    // Clamp score between 0–100
-    const s = Math.max(0, Math.min(score, 100));
-
-    let message = "";
-
-    if (category === "essential") {
-      if (s >= 85)
-        message =
-          "💎 Financial Pro — Your essential spending is perfectly balanced!";
-      else if (s >= 70)
-        message =
-          "⚖️ Balanced Spender — You prioritize essentials well, minor indulgences ok.";
-      else if (s >= 50)
-        message = harshMode
-          ? "⚠️ Risky Spender — Even essential spending could use more discipline!"
-          : "💰 Careless Spender — Essentials managed, but watch other habits.";
-      else if (s >= 30)
-        message = harshMode
-          ? "🔥 Impulse Spender — Poor control over necessary expenses!"
-          : "💸 Impulse Spender — Essential spending inconsistent, be careful!";
-      else
-        message = harshMode
-          ? "🚨 Financial Disaster — Essential expenses are a mess!"
-          : "😱 Chaotic Spender — Essentials neglected, urgent improvement needed!";
-    } else if (category === "lifestyle") {
-      if (s >= 85)
-        message =
-          "💎 Financial Pro — Lifestyle spending is smart and controlled!";
-      else if (s >= 70)
-        message =
-          "⚖️ Balanced Spender — You enjoy life moderately without overspending.";
-      else if (s >= 50)
-        message = harshMode
-          ? "⚠️ Risky Spender — Lifestyle indulgences may hurt your wallet!"
-          : "💰 Careless Spender — You sometimes overspend on lifestyle items.";
-      else if (s >= 30)
-        message = harshMode
-          ? "🔥 Impulse Spender — Lifestyle purchases are uncontrolled!"
-          : "💸 Impulse Spender — Frequent lifestyle overspending detected.";
-      else
-        message = harshMode
-          ? "🚨 Financial Disaster — Lifestyle spending is reckless!"
-          : "😱 Chaotic Spender — Major overspending on lifestyle, beware!";
-    } else if (category === "impulsive") {
-      if (s >= 85)
-        message =
-          "💎 Financial Pro — Rare for impulsive spenders, excellent control!";
-      else if (s >= 70)
-        message =
-          "⚖️ Balanced Spender — Impulsive habits exist, but you mostly control them.";
-      else if (s >= 50)
-        message = harshMode
-          ? "⚠️ Risky Spender — Impulsive spending is risky, tighten control!"
-          : "💰 Careless Spender — You often spend impulsively, work on discipline.";
-      else if (s >= 30)
-        message = harshMode
-          ? "🔥 Impulse Spender — Brutal truth: impulsive spending dominates your finances!"
-          : "💸 Impulse Spender — Impulse buys frequently hurt your budget.";
-      else
-        message = harshMode
-          ? "🚨 Financial Disaster — Uncontrolled impulse spending everywhere!"
-          : "😱 Chaotic Spender — Impulsive habits are high-risk, take action!";
-    }
-
-    return message;
-  };
-
-  const handleAnalyze = async () => {
-    if (
-      spending.trim().length === 0 ||
-      problem.trim().length === 0 ||
-      income.trim().length === 0
-    ) {
-      toast.error("Please fill all the fields!");
-      return;
-    }
-
-    await analyzeSpending(spending, income, problem);
-
-    setLoading(true);
-    setResult(null);
-    setStreamText("");
-
-    //  Start fake loading (premium UX)
-    setStreamText("Analyzing patterns...\n");
-
-    setTimeout(() => {
-      setStreamText((prev) => prev + "Detecting behavior...\n");
-    }, 700);
-
-    setTimeout(() => {
-      setStreamText((prev) => prev + "Generating insights...\n\n");
-    }, 1400);
-
-    try {
-      //  Call Gemini API
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        body: JSON.stringify({
-          prompt: `
-        Brutal mode: ${harshMode ? "ON" : "OFF"}
-
-        User financial data:
-        Spending: ${spending}${category && category.trim() ? `\nSpending category: ${category}` : ""}
-        Problem: ${problem}
-        Income: ${income}
-        Score: ${score}
-
-        Return ONLY valid JSON in the EXACT format below. Do NOT include any extra text, explanations, or markdown:
-
-        {
-        "personality": "<single-line personality insight, adapt to brutal mode>",
-        "insight": "<what the user is doing wrong>",
-        "fix": "<3 simple actionable steps separated by \\n (DO NOT separate by 1,2 numbers or bullets or any symbols)>",
-        "impact": "<what happens if they don’t improve>"
-        }
-        `,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to fetch analysis");
-
-      if (!res.body) return;
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-
-      let fullText = "";
-      let done = false;
-
-      // ✅ 4. STREAM RESPONSE
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-
-        const chunk = decoder.decode(value);
-        fullText += chunk;
-
-        setStreamText((prev) => prev + chunk); // 🔥 live typing
-      }
-
-      //  Parse JSON → final result
-
-      //  Remove markdown blocks
-      let cleaned = fullText.replace(/```json|```/g, "").trim();
-
-      //  Sometimes LLM adds text before/after JSON — try to extract {...} block
-      const match = cleaned.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("No JSON found in LLM output");
-
-      cleaned = match[0];
-
-      //  Safely parse
-      const parsed = JSON.parse(cleaned);
-
-      const rawFix = parsed.fix;
-
-      //  Handle ALL cases safely
-      let fixList: string[] = [];
-
-      if (typeof rawFix === "string") {
-        fixList = rawFix
-          .split(/\d+\.\s|•\s|-\s/)
-          .map((item) => item.trim())
-          .filter((item) => item.length > 0);
-      } else if (Array.isArray(rawFix)) {
-        fixList = rawFix;
-      } else {
-        fixList = ["No suggestions available"];
-      }
-
-      setResult({
-        ...parsed,
-        personality:
-          parsed.personality || getPersonality(score, category, harshMode),
-        fix: fixList.join("\n"),
-      });
-    } catch (error) {
-      toast.error("Something went wrong! Please try again later. ");
-      console.log("Error while analysing : ", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const copyResult = () => {
-    if (!result) {
-      toast.error("Can't copy result! Please try again later.");
-      return;
-    }
-    const text = `🧠 My MoneyMind Result:
-    
-        ${result.personality}
-
-        💡 Insight: ${result.insight}
-        ⚡ Fix: ${result.fix}
-        💰 Impact: ${result.impact}
-
-        Try it yourself! 🚀`;
-
-    navigator.clipboard.writeText(text);
-    toast.success("Result Copied!");
-  };
+  const totalIncome = allTransactions
+    .filter((t) => t.type === "Income")
+    .reduce((acc, t) => acc + Number(t.amount), 0);
 
   useEffect(() => {
     // Dynamically import html2pdf.js on client
@@ -419,281 +113,548 @@ export default function AnalyzePage() {
     });
   }, []);
 
-  // helper
-  const section = (title: string, content: string) => `
-  <div style="margin-bottom:20px;">
-    <div style="
-      font-size:12px;
-      color:#888;
-      font-weight:bold;
-      margin-bottom:5px;
-      text-transform:uppercase;
-    ">
-      ${title}
-    </div>
-    <div>${content}</div>
-  </div>
-`;
+  useEffect(() => {
+    if (fianceStatements) {
+      setStatements(fianceStatements);
+    }
+  }, [fianceStatements]);
+
+  useEffect(() => {
+    if (finance?.transactions) {
+      setManualTransactions(finance.transactions);
+    }
+  }, [finance]);
+
+  // TODO : change monthly income on mouse out
+  const changeMonthlyIncome = async () => {
+    const res = await fetch("/api/profile", {
+      method: "PATCH",
+      body: JSON.stringify({
+        financeId: "",
+        monthlyIncome: Number(income),
+      }),
+    });
+  };
+
+  const simulate = () => {
+    if (!finance?.prediction?.nextMonthExpense) return;
+
+    const newExpense = finance.prediction.nextMonthExpense - simulateValue;
+
+    setSimulatedExpense(newExpense);
+    toast.success("Future updated based on your decision 🚀");
+  };
 
   const downloadResult = () => {
-    if (!html2pdfInstance || !result) {
-      toast.error("Can't download result! Please try again later.");
+    if (!html2pdfInstance || !latestAnalysis) {
+      alert("Can't download result! Try again.");
       return;
     }
+
+    // 🔹 reusable section
+    const section = (title: string, content: string) => `
+      <div style="margin-bottom:18px;">
+        <div style="
+          font-size:11px;
+          color:#6b7280;
+          font-weight:600;
+          margin-bottom:6px;
+          letter-spacing:0.5px;
+          text-transform:uppercase;
+        ">
+          ${title}
+        </div>
+        <div style="font-size:14px; color:#111827;">
+          ${content || "-"}
+        </div>
+      </div>
+    `;
 
     const element = document.createElement("div");
 
     element.innerHTML = `
-    <div style="
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      color: #111;
-      line-height: 1.6;
-    ">
-      <div>
-        <h1 style="font-size:26px; margin-bottom:5px;">
-          MoneyMind Report
-          <span style="
-            float:right;
-            font-size:16px;
-            color:#2563eb;
-            font-weight:bold;
-          ">
-            Score: ${score} / 100
-          </span>
-        </h1>
-        <div style="color:#666; font-size:13px; margin-bottom:20px;">
-          Your financial behavior analysis
-        </div>
-      </div>
-
-      <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
-
-      ${section("Personality", result.personality)}
-      ${section("Insight", result.insight)}
-      ${section("Action Plan", result.fix)}
-      ${section("Impact", result.impact)}
-
       <div style="
-        margin-top:40px;
-        font-size:10px;
-        color:#999;
+        font-family: Inter, Arial, sans-serif;
+        padding: 40px;
+        color: #111827;
+        line-height: 1.6;
       ">
-        Generated by MoneyMind • Behavioral Finance AI
+
+        <!-- HEADER -->
+        <div style="margin-bottom:20px;">
+          <h1 style="font-size:24px; margin:0;">
+            MoneyMind Report
+          </h1>
+
+          <div style="
+            font-size:13px;
+            color:#6b7280;
+            margin-top:4px;
+          ">
+            AI-powered financial behavior analysis
+          </div>
+
+          <div style="
+            margin-top:12px;
+            font-size:16px;
+            font-weight:600;
+            color:#2563eb;
+          ">
+            Score: ${latestAnalysis?.score ?? 0} / 100
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid #e5e7eb; margin:20px 0;" />
+
+        <!-- CONTENT -->
+        ${section("Personality", latestAnalysis?.personality)}
+        ${section("Key Insights", latestAnalysis?.insights?.join(", "))}
+        ${section("Action Plan", latestAnalysis?.fixes?.join(", "))}
+        ${section("Financial Impact", latestAnalysis?.impact)}
+
+        <!-- FOOTER -->
+        <div style="
+          margin-top:40px;
+          font-size:10px;
+          color:#9ca3af;
+        ">
+          Generated by MoneyMind • Behavioral Finance AI
+        </div>
+
       </div>
-    </div>
-  `;
+    `;
 
-    const opt = {
-      margin: 0,
-      filename: "MoneyMind-Report.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    } as const;
-
-    html2pdfInstance().set(opt).from(element).save();
+    html2pdfInstance()
+      .set({
+        margin: 0,
+        filename: "MoneyMind-Report.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: {
+          unit: "mm",
+          format: "a4",
+          orientation: "portrait",
+        },
+      })
+      .from(element)
+      .save();
   };
 
-  const iColor = sectionColors.insight;
-  const fColor = sectionColors.fixes;
-  const imColor = sectionColors.impact;
+  let scoreColor = "text-red-400";
+
+  if (latestAnalysis) {
+    scoreColor =
+      latestAnalysis.score > 75
+        ? "text-green-400"
+        : latestAnalysis.score > 50
+          ? "text-yellow-400"
+          : "text-red-400";
+  }
+
+  if (!session) {
+    return <NotFound />;
+  }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-black text-white px-1.5 py-3 md:p-6">
-      {/* NAVBAR */}
-      <nav className="flex justify-between items-center max-w-6xl mx-auto mb-20 md:mb-5">
-        <Link
-          href={"/"}
-          className="text-xs md:text-xl font-bold cursor-pointer"
-        >
-          🧠 MoneyMind
-        </Link>
+    <div className="min-h-screen h-auto bg-black text-white px-3 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+        {/* BACKGROUND GLOW */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 bg-blue-500/10 blur-[120px]" />
+        </div>
 
-        {/* 👉 PRIMARY ACTION */}
-        <Link
-          href="/chat"
-          className="group bg-blue-600 hover:bg-blue-500 px-5 py-2 text-sm md:text-base rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200 ease-out"
-        >
-          Start Chat
-          <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
-        </Link>
-      </nav>
-      <h1 className="text-2xl font-bold text-center mb-6">
-        🧠 Analyze Your Money Behavior
-      </h1>
+        {/* NAVBAR */}
+        <nav className="flex flex-wrap gap-3 justify-between items-center max-w-6xl mx-auto mb-6 md:mb-10">
+          <Link href="/" className="text-lg font-semibold">
+            🧠 MoneyMind
+          </Link>
 
-      {/* FORM */}
-      <div className="max-w-xl mx-auto space-y-4">
-        <input
-          placeholder="What do you spend most on? : e.g., books & stationaries"
-          value={spending}
-          onChange={(e) => setSpending(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
-        />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/chat"
+              className="bg-linear-to-r from-blue-500 to-purple-500 px-4 py-2 rounded-xl flex items-center gap-2 hover:scale-105 transition"
+            >
+              🤖 Ask AI
+              <ArrowRight size={16} />
+            </Link>
 
-        <input
-          placeholder="Your biggest money problem? : e.g., I keep buying new books I never read"
-          value={problem}
-          onChange={(e) => setProblem(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
-        />
-
-        <input
-          placeholder="Monthly income (₹) : e.g., ₹25000"
-          value={income}
-          onChange={(e) => setIncome(e.target.value)}
-          className="w-full p-3 rounded-xl bg-gray-900 border border-gray-700 placeholder:font-light placeholder:text-gray-500 placeholder:text-sm"
-        />
-
-        <div className="flex gap-1.5 justify-between items-center w-full h-16">
-          <div className="flex flex-col md:flex-row gap-1.5 justify-center md:justify-start items-start md:items-center cursor-pointer flex-1 text-xs md:text-sm  whitespace-pre-wrap">
-            Harsh Mode &nbsp;:
-            {harshMode ? (
-              <ToggleRight
-                onClick={() => setHarshMode(!harshMode)}
-                className="text-blue-500 text-xl"
-                size={36}
-                strokeWidth={1}
-              />
-            ) : (
-              <ToggleLeft
-                onClick={() => setHarshMode(!harshMode)}
-                className="text-white text-xl"
-                size={36}
-                strokeWidth={1}
-              />
+            {session && (
+              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-xl border border-white/10">
+                <span
+                  onClick={() => router.push("/profile")}
+                  className="text-xs text-gray-300 cursor-pointer"
+                >
+                  {session?.user?.name && (
+                    <>
+                      {session?.user?.name.length > 10 ? (
+                        <>{session?.user?.name.slice(0, 10)}..</>
+                      ) : (
+                        <>{session?.user?.name}</>
+                      )}
+                    </>
+                  )}
+                </span>
+                <div className="w-px h-3.25 bg-linear-to-r from-transparent via-white/20 to-transparent" />
+                <button
+                  onClick={() => signOut()}
+                  className="text-xs text-red-400 cursor-pointer"
+                >
+                  Logout
+                </button>
+              </div>
             )}
           </div>
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={harshMode ? "harsh" : "normal"}
-              initial={{ opacity: 0, y: 6, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`flex-2 text-xs md:text-sm ${harshMode ? "text-red-400" : "text-gray-400"}`}
-            >
-              {harshMode
-                ? "⚠️ Harsh Mode ON: Preparing to roast your financial habits..."
-                : "Too soft? Enable Harsh Mode for brutal honesty."}
-            </motion.span>
-          </AnimatePresence>
+        </nav>
+
+        {showAddModal && (
+          <AddTransactionModal
+            onClose={() => {
+              setShowAddModal(false);
+            }}
+            onAdd={async (tx: Transaction) => {
+              const res = await fetch("/api/transaction", {
+                method: "POST",
+                body: JSON.stringify(tx),
+              });
+
+              const data = await res.json();
+
+              if (res.ok) {
+                setManualTransactions(data.transactions);
+                toast.success("Transaction added 🚀");
+              } else {
+                toast.error("Failed to add transaction");
+              }
+            }}
+          />
+        )}
+
+        {/* SUMMARY */}
+        <div className="grid grid-cols-3 gap-4">
+          <GlassCard>
+            <p className="text-xs text-gray-400 mb-1">Monthly Income</p>
+            <input
+              value={income}
+              onChange={(e) => setIncome(e.target.value)}
+              placeholder="₹25000"
+              className="w-full p-3 text-base md:text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </GlassCard>
+          <Card title="Spent" value={`₹${totalSpent}`} />
+          <Card title="Balance" value={`₹${totalIncome - totalSpent}`} />
         </div>
 
-        <motion.button
-          disabled={loading}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleAnalyze}
-          className="w-full bg-blue-600 py-3 rounded-xl"
-        >
-          Analyze My Behavior 🚀
-        </motion.button>
-      </div>
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LEFT: STATEMENTS */}
+          <div className="space-y-4">
+            <GlassCard>
+              <div className="flex justify-between mb-3">
+                <p className="text-sm text-gray-400">Statements</p>
 
-      {/* LOADING */}
-      {/* Loading / Streaming */}
-      {loading && !result && (
-        <div className="mt-6 whitespace-pre-wrap text-gray-400">
-          {streamText}
-          <span className="animate-pulse">|</span>
-        </div>
-      )}
-
-      {/* Final Result */}
-      {result && (
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mt-12 p-6 bg-gray-900 rounded-2xl border border-gray-800 text-left relative"
-        >
-          <ScoreCard result={result} score={score} />
-
-          <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-              className={`p-4 rounded-xl border ${iColor.border} ${iColor.bg}`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Lightbulb className={`w-4 h-4 ${iColor.title}`} />
-                <p className={`text-sm ${iColor.title}`}>INSIGHT</p>
+                <button
+                  onClick={() => setShowUpload(true)}
+                  className="text-xs bg-purple-500/20 px-3 py-1 rounded"
+                >
+                  Upload
+                </button>
               </div>
 
-              <p className="text-gray-300 leading-relaxed">{result.insight}</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-              className={`p-4 rounded-xl border ${fColor.border} ${fColor.bg}`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Target className={`w-4 h-4 ${fColor.title}`} />
-                <p className={`text-sm ${fColor.title}`}>ACTION PLAN</p>
-              </div>
-
-              <ul className="list-disc ml-5 space-y-2 text-gray-300">
-                {result.fix
-                  .split(/\.\s+/)
-                  .map((item) => item.trim())
-                  .filter(Boolean)
-                  .map((item, i) => (
-                    <li key={i}>{item}</li>
+              {statements.length === 0 ? (
+                <p className="text-xs text-gray-500">No statements uploaded</p>
+              ) : (
+                <div className="space-y-2">
+                  {statements.map((s) => (
+                    <div
+                      key={s._id}
+                      onClick={() => setSelectedStatementId(s._id)}
+                      className={`p-2 rounded cursor-pointer text-xs ${
+                        selectedStatementId === s._id
+                          ? "bg-blue-500/20"
+                          : "bg-white/5 hover:bg-white/10"
+                      }`}
+                    >
+                      📄 {s.fileName}
+                    </div>
                   ))}
-              </ul>
-            </motion.div>
+                </div>
+              )}
+            </GlassCard>
 
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-              className={`p-4 rounded-xl border ${imColor.border} ${imColor.bg}`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingDown className={`w-4 h-4 ${imColor.title}`} />
-                <p className={`text-sm ${imColor.title}`}>IMPACT</p>
-              </div>
+            {/* TRANSACTIONS */}
+            <GlassCard>
+              <p className="text-sm text-gray-400 mb-3">
+                Transactions {selectedStatementId && "(Selected Statement)"}
+              </p>
 
-              <p className="text-gray-300 leading-relaxed">{result.impact}</p>
-            </motion.div>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="text-xs bg-green-500/20 px-3 py-1 rounded"
+              >
+                + Add Manual
+              </button>
+
+              {selectedTransactions.length > 0 ? (
+                <TransactionTable
+                  transactions={selectedTransactions}
+                  GlassCard={GlassCard}
+                />
+              ) : (
+                <p className="text-xs text-gray-500">
+                  Select a statement to view transactions
+                </p>
+              )}
+            </GlassCard>
           </div>
 
-          <button
-            onClick={copyResult}
-            className="absolute right-12 text-xl top-1 cursor-pointer group"
-          >
-            🖥
-            <span
-              className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 
-                whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded 
-                opacity-0 group-hover:opacity-100 transition"
+          {/* RIGHT: AI SUMMARY */}
+          <div className="space-y-4">
+            {/* 🧠 AI ANALYSIS */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
             >
-              Copy
-            </span>
-          </button>
-          <button
-            onClick={downloadResult}
-            className="absolute right-3 top-1 text-xl cursor-pointer group"
-          >
-            ⬇️
-            <span
-              className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 
-                whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded 
-                opacity-0 group-hover:opacity-100 transition"
+              <GlassCard>
+                <p className="text-sm text-gray-400 mb-3">
+                  🧠 AI Analysis (All Statements)
+                </p>
+
+                {allTransactions.length === 0 ? (
+                  <p className="text-xs text-gray-500">
+                    Upload statements to see analysis
+                  </p>
+                ) : (
+                  <div className="text-sm space-y-2">
+                    {/* 💸 TOTALS */}
+                    <div className="flex justify-between">
+                      <p>💸 Spent</p>
+                      <span>₹{totalSpent}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <p>💰 Income</p>
+                      <span>₹{totalIncome}</span>
+                    </div>
+
+                    {latestAnalysis ? (
+                      <motion.div
+                        key={latestAnalysis.createdAt}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="mt-3 space-y-3 text-sm"
+                      >
+                        {/* 🎯 SCORE */}
+                        <div className="flex justify-between items-center">
+                          <p className="text-gray-400 text-xs">
+                            Financial Score
+                          </p>
+
+                          <motion.span
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            className={`font-semibold ${scoreColor}`}
+                          >
+                            {latestAnalysis?.score ?? 0}/100
+                          </motion.span>
+                        </div>
+
+                        {/* 🧠 PERSONALITY */}
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-xs text-blue-400"
+                        >
+                          🧠 {latestAnalysis?.personality}
+                        </motion.div>
+
+                        {/* 💡 INSIGHTS */}
+                        <div className="space-y-1">
+                          {latestAnalysis?.insights
+                            ?.slice(0, 2)
+                            .map((ins: any, i: number) => (
+                              <motion.p
+                                key={i}
+                                initial={{ x: -10, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="text-xs text-gray-300"
+                              >
+                                • {ins.text}
+                              </motion.p>
+                            ))}
+                        </div>
+
+                        {/* ⚡ FIX */}
+                        {latestAnalysis.fixes?.[0] && (
+                          <motion.div
+                            initial={{ scale: 0.95 }}
+                            animate={{ scale: 1 }}
+                            className="bg-blue-500/10 border border-blue-500/20 p-2 rounded text-xs"
+                          >
+                            👉 {latestAnalysis.fixes[0].action}
+                          </motion.div>
+                        )}
+
+                        {/* 📊 IMPACT */}
+                        {latestAnalysis.impact && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-[11px] text-green-400"
+                          >
+                            💰 Save ₹{latestAnalysis.impact.savingsPotential}{" "}
+                            possible
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        AI analysis will appear after processing
+                      </p>
+                    )}
+                    <button onClick={downloadResult}>download</button>
+                  </div>
+                )}
+              </GlassCard>
+            </motion.div>
+
+            {/* 🔮 PREDICTION CARD */}
+            {finance && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <GlassCard>
+                  <p className="text-sm text-gray-400 mb-2">
+                    🔮 Next Month Prediction
+                  </p>
+
+                  <motion.h2
+                    key={
+                      simulatedExpense ?? finance.prediction?.nextMonthExpense
+                    }
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    className="text-2xl font-bold"
+                  >
+                    ₹
+                    {simulatedExpense ??
+                      finance.prediction?.nextMonthExpense ??
+                      0}
+                  </motion.h2>
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    {finance.prediction?.reason ||
+                      "Based on your recent spending habits"}
+                  </p>
+                </GlassCard>
+
+                {/* 📊 CHART */}
+                <p className="text-gray-400 text-sm mb-2">
+                  Your spending behavior this month
+                </p>
+                <SpendingChart breakdown={finance.breakdown} />
+              </motion.div>
+            )}
+
+            {/* 🎮 SIMULATION */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
             >
-              Download PDF
-            </span>
-          </button>
-        </motion.div>
-      )}
+              <GlassCard>
+                <p className="text-sm text-gray-400 mb-2">
+                  🎮 Simulate Improvement
+                </p>
+
+                <input
+                  type="number"
+                  placeholder="Reduce by ₹5000"
+                  onChange={(e) => setSimulateValue(Number(e.target.value))}
+                  className="w-full p-2 rounded-lg bg-black/40 border border-white/10 text-sm"
+                />
+
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={simulate}
+                  className="mt-3 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm"
+                >
+                  Simulate
+                </motion.button>
+
+                {simulatedExpense !== null && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-green-400 text-xs mt-2"
+                  >
+                    You can save ₹{simulateValue} next month 🎉
+                  </motion.p>
+                )}
+              </GlassCard>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* UPLOAD */}
+        <UploadStatement
+          showUploadModal={showUpload}
+          setShowUploadModal={setShowUpload}
+          setTransactions={setManualTransactions}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* COMPONENTS */
+
+function GlassCard({
+  children,
+  gradient,
+}: {
+  children: React.ReactNode;
+  gradient?: boolean;
+}) {
+  return (
+    <div
+      className={`p-5 rounded-2xl border border-white/10 backdrop-blur-xl ${
+        gradient
+          ? "bg-linear-to-br from-green-500/10 to-blue-500/10"
+          : "bg-white/5"
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Card({
+  title,
+  value,
+  red,
+  green,
+}: {
+  title: string;
+  value: string;
+  red?: boolean;
+  green?: boolean;
+}) {
+  return (
+    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+      <p className="text-xs text-gray-400">{title}</p>
+      <p
+        className={`text-lg font-semibold ${
+          red ? "text-red-400" : green ? "text-green-400" : ""
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

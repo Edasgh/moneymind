@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function DemoChat() {
-  const fullText =
-    "This sounds like impulse eating, not hunger. Try setting a ₹200 weekly cap first. What usually triggers it — stress or boredom? 🤔";
-
+const fullText =
+  "I noticed a pattern of frequent small orders rather than large planned ones. That usually signals habit-based spending. Let’s fix it with a simple rule: 2 orders per week max + ₹200 limit. Want me to track this for you? 📊";
   const router = useRouter();
   const [typedText, setTypedText] = useState("");
   const [showAI, setShowAI] = useState(false);
@@ -69,7 +68,7 @@ export default function DemoChat() {
           </span>
           User:
         </p>
-        <p>I spend too much on Swiggy</p>
+        <p>Help me with my spending habits</p>
       </div>
 
       {/* THINKING */}
