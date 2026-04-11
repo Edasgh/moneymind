@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import Statement from "@/models/Statement";
 import { connectDB } from "@/lib/db";
@@ -157,9 +159,12 @@ export async function GET(req: Request) {
     processed++;
   }
 
-  return NextResponse.json({
-    processed,
-    success,
-    failed,
-  },{status:200});
+  return NextResponse.json(
+    {
+      processed,
+      success,
+      failed,
+    },
+    { status: 200 },
+  );
 }

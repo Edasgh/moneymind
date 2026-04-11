@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Statement from "@/models/Statement";
@@ -234,10 +236,13 @@ export async function GET(req: Request) {
 
   if (!finances.length) {
     console.log("⚠️ No finance records found");
-    return NextResponse.json({
-      processed: 0,
-      message: "No finance data found",
-    },{status:404});
+    return NextResponse.json(
+      {
+        processed: 0,
+        message: "No finance data found",
+      },
+      { status: 404 },
+    );
   }
 
   for (const finance of finances) {
@@ -519,5 +524,5 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ processed },{status:200});
+  return NextResponse.json({ processed }, { status: 200 });
 }

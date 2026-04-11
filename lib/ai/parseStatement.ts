@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getStatementConfidence } from "@/lib/statementParser";
-import { PDFParse } from "pdf-parse";
+import pdf from "pdf-parse";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -50,8 +50,8 @@ export async function parseStatementWithAI(stmt: any) {
 
   if (stmt.type === "pdf") {
     const buffer = Buffer.from(arrayBuffer);
-    const parser = new PDFParse({ data: buffer });
-    const data = await parser.getText();
+    const data = await pdf(buffer);
+
     text = data.text;
   } else {
     text = await new Response(arrayBuffer).text();
