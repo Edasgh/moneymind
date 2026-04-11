@@ -4,20 +4,95 @@ import Finance from "@/models/Finance";
 import Statement from "@/models/Statement";
 import { getServerSession } from "next-auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { canAfford } from "@/lib/canAfford";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY!);
 
+function extractGoalFromMessage(message: string) {
+  const amountMatch = message.match(/₹?\s?(\d+[,\d]*)/);
+  const amount = amountMatch ? Number(amountMatch[1].replace(/,/g, "")) : null;
+
+  let title = "Goal";
+
+  if (/car/i.test(message)) title = "Car";
+  else if (/bike/i.test(message)) title = "Bike";
+  else if (/house|home|apartment|flat/i.test(message)) title = "House";
+
+  return amount ? { title, amount } : null;
+}
+
+function extractAmount(text: string) {
+  const match = text.match(/₹?\s?(\d+[,\d]*)/);
+  if (!match) return 0;
+
+  return Number(match[1].replace(/,/g, ""));
+}
 
 export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return Response.json({ reply: "Unauthorized" }, { status: 401 });
     }
 
     const { message, history } = await req.json();
+
+    const isAffordQuery = /(afford|buy|purchase)/i.test(message);
+
+    if (isAffordQuery) {
+      // extract price (basic regex)
+      const price = extractAmount(message);
+
+      const finance = await Finance.findOne({ userId: session.user.id });
+
+      if (!finance) {
+        return Response.json({
+          reply: "I need your financial data first. Upload a statement.",
+        });
+      }
+
+      const lastSnapshot = finance.aiHistory?.at(-1)?.snapshot;
+
+      if (!lastSnapshot) {
+        return Response.json({
+          reply: "I don't have enough data yet. Try uploading a statement.",
+        });
+      }
+
+      const goalData = extractGoalFromMessage(message);
+
+      if (goalData) {
+        const alreadyExists = finance.goals.some(
+          (g: any) =>
+            g.title === goalData.title && g.targetAmount === goalData.amount,
+        );
+
+        if (!alreadyExists) {
+          finance.goals.push({
+            title: goalData.title,
+            targetAmount: goalData.amount,
+            status: "active",
+          });
+
+          await finance.save();
+        }
+      }
+
+      const savings = lastSnapshot.income - lastSnapshot.totalSpent;
+
+      const result = canAfford({
+        savings,
+        price,
+        monthlySavings: savings,
+      });
+
+      return Response.json({
+        reply: `${result.decision === "YES" ? "✅ Yes" : "❌ No"} — ${result.reason}. ${result.suggestion || ""}`,
+      });
+    }
 
     // =========================
     // 📊 FETCH USER FINANCE

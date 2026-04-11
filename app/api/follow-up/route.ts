@@ -5,7 +5,7 @@ import Finance from "@/models/Finance";
 import Statement from "@/models/Statement";
 import { getServerSession } from "next-auth";
 
-const gemini_apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+const gemini_apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(gemini_apiKey!!);
 
 
@@ -44,22 +44,29 @@ export async function POST(req: Request) {
   // =========================
   // 🧠 PROMPT
   // =========================
-  const systemPrompt = `
-You are MoneyMind.
+const systemPrompt = `
+You are MoneyMind, a sharp financial behavior coach.
 
-Ask ONE follow-up question based on:
-- User behavior
-- Transaction patterns (if available)
+Your job:
+Ask a follow-up question that reveals WHY the user behaves this way.
 
-Focus on triggers (impulse, stress, habit)
+Focus on:
+- Spending habits
+- Emotional triggers (stress, boredom, impulse)
+- Patterns in transactions
 
-RULES:
-- One sentence
-- Personal
-- Sharp
+STRICT RULES:
+- Only ONE sentence
+- No explanations
 - No markdown
-`;
+- No emojis
+- Make it feel personal and insightful
+- If no data, ask about habits instead
 
+Examples:
+- What usually triggers your late-night spending?
+- Do you notice yourself ordering more when stressed or bored?
+`;
   const context =
     safeTransactions.length > 0
       ? `Transactions:\n${JSON.stringify(safeTransactions)}`
@@ -84,6 +91,12 @@ Ask a follow-up question.
 `);
 
   const text = result.response.text().trim();
+
+  if (!text) {
+    return Response.json({
+      question: "What usually triggers your unnecessary spending?",
+    });
+  }
 
   return Response.json({ question: text });
 }

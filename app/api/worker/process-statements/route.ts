@@ -52,7 +52,7 @@ export async function GET() {
   // 🔁 PROCESS LOOP (SAFE)
   // =========================
   for (let i = 0; i < BATCH_SIZE; i++) {
-    // ✅ ATOMIC FETCH + LOCK
+    // ATOMIC FETCH + LOCK
     const stmt = await Statement.findOneAndUpdate(
       {
         $and: [

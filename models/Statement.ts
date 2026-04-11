@@ -27,7 +27,7 @@ const StatementSchema = new mongoose.Schema(
       default: "uploaded",
     },
 
-    // Parsed Data (optional but 🔥 useful)
+    // Parsed Data 
     extractedTransactions: [transactionSchema],
 
     // Debug / AI parsing logs

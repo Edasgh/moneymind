@@ -60,6 +60,8 @@ const GoalSchema = new mongoose.Schema(
       enum: ["active", "achieved", "at-risk"],
       default: "active",
     },
+
+    notified70: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
@@ -149,6 +151,19 @@ const FinanceSchema = new mongoose.Schema(
     flags: {
       notifiedNoStatements: { type: Boolean, default: false },
       notifiedNoTransactions: { type: Boolean, default: false },
+    },
+
+    prediction: {
+      nextMonthExpense: Number,
+      confidence: String,
+      reason: String,
+    },
+
+    breakdown: {
+      essential: { type: Number, default: 0 },
+      lifestyle: { type: Number, default: 0 },
+      impulsive: { type: Number, default: 0 },
+      updatedAt: { type: Date },
     },
   },
   { timestamps: true },

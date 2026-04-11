@@ -2,31 +2,13 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { motion } from "framer-motion";
-import { DOMAttributes, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 import NotFound from "../not-found";
-import UploadStatement from "@/components/UploadStatement";
+import { toast } from "react-toastify";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [income, setIncome] = useState("0");
-
-  // Dummy data (replace with DB later)
-  const statements = [
-    {
-      fileName: "HDFC_Jan.pdf",
-      status: "parsed",
-      date: "2026-03-01",
-    },
-    {
-      fileName: "ICICI_Feb.csv",
-      status: "processing",
-      date: "2026-03-10",
-    },
-  ];
 
   if (!session) {
     return <NotFound />;
@@ -39,169 +21,75 @@ export default function ProfilePage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-125 h-62.5 bg-purple-500/10 blur-[120px]" />
       </div>
 
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-xl mx-auto mt-16 space-y-6">
         {/* HEADER */}
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Your Profile</h1>
-          <p className="text-sm text-gray-400">
-            Manage your data & uploaded statements
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-2xl font-semibold text-center">Your Profile</h1>
+          <p className="text-sm text-gray-400 text-center mt-1">
+            Manage your account
           </p>
-        </div>
+        </motion.div>
 
-        {/* USER INFO */}
-        <GlassCard>
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-lg font-semibold">
-                {session?.user?.name || "User"}
-              </p>
-              <p className="text-sm text-gray-400">{session?.user?.email}</p>
-            </div>
+        {/* USER CARD */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl text-center space-y-3"
+        >
+          <div className="w-14 h-14 mx-auto rounded-full bg-linear-to-r from-blue-500 to-purple-500 flex items-center justify-center text-lg font-bold">
+            {session.user?.name?.[0] || "U"}
+          </div>
 
-            <button onClick={() => signOut()} className="text-sm text-red-400">
+          <p className="text-lg font-semibold">
+            {session.user?.name || "User"}
+          </p>
+
+          <p className="text-sm text-gray-400">{session.user?.email}</p>
+
+          {/* ACTIONS */}
+          <div className="flex justify-center gap-3 mt-4">
+            <button
+              onClick={() => toast.info("Edit profile coming soon")}
+              className="px-4 py-2 text-sm rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/20 transition"
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={() => signOut()}
+              className="px-4 py-2 text-sm rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/20 transition"
+            >
               Logout
             </button>
           </div>
-        </GlassCard>
+        </motion.div>
 
-        {/* FINANCIAL SUMMARY */}
-        <div className="grid grid-cols-3 gap-4">
-          <GlassCard>
-            <p className="text-xs text-gray-400 mb-1">Monthly Income</p>
-            <input
-              value={income}
-              onChange={(e) => setIncome(e.target.value)}
-              placeholder="₹25000"
-              className="w-full p-3 text-base md:text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </GlassCard>
-          <Card title="Spent" value="₹20,000" red />
-          <Card title="Saved" value="₹30,000" green />
-        </div>
+        {/* NAVIGATION ACTIONS */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-2 gap-4"
+        >
+          <button
+            onClick={() => router.push("/analyze")}
+            className="p-4 rounded-xl bg-linear-to-r from-blue-500 to-purple-500 hover:scale-105 transition text-sm font-medium"
+          >
+            📊 Dashboard
+          </button>
 
-        {/* STATEMENTS */}
-        <GlassCard>
-          <div className="flex justify-between mb-4">
-            <p className="text-sm text-gray-400">Uploaded Statements</p>
-
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="text-xs bg-purple-500/20 px-3 py-1 rounded-lg"
-            >
-              Upload New
-            </button>
-          </div>
-
-          {statements.length === 0 ? (
-            <p className="text-sm text-gray-500">No statements uploaded yet</p>
-          ) : (
-            <div className="space-y-3">
-              {statements.map((s, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex w-full flex-row items-center justify-between gap-2 bg-white/5 p-3 rounded-lg border border-white/10"
-                >
-                  <div>
-                    <p className="text-sm">{s.fileName}</p>
-                    <p className="text-xs text-gray-400">{s.date}</p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <StatusBadge status={s.status} />
-
-                    <button className="text-xs text-blue-400">View</button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </GlassCard>
-
-        {/* QUICK ACTIONS */}
-        <GlassCard>
-          <p className="text-sm text-gray-400 mb-3">Quick Actions</p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <ActionButton onClick={() => router.push("/chat")} label="Ask AI" />
-            <ActionButton
-              onClick={() => router.push("/analyze")}
-              label="View Insights"
-            />
-          </div>
-        </GlassCard>
+          <button
+            onClick={() => router.push("/chat")}
+            className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm font-medium"
+          >
+            🤖 Ask AI
+          </button>
+        </motion.div>
       </div>
-      {/* Modal */}
-      {/* Upload bank statement */}
-      <UploadStatement
-        showUploadModal={showUploadModal}
-        setShowUploadModal={setShowUploadModal}
-      />
     </div>
-  );
-}
-
-function GlassCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="p-5 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
-      {children}
-    </div>
-  );
-}
-
-function Card({
-  title,
-  value,
-  red,
-  green,
-}: {
-  title: string;
-  value: string;
-  red?: boolean;
-  green?: boolean;
-}) {
-  return (
-    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-      <p className="text-xs text-gray-400">{title}</p>
-      <p
-        className={`text-lg font-semibold ${
-          red ? "text-red-400" : green ? "text-green-400" : ""
-        }`}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: any = {
-    parsed: "bg-green-500/20 text-green-400",
-    processing: "bg-yellow-500/20 text-yellow-400",
-    failed: "bg-red-500/20 text-red-400",
-  };
-
-  return (
-    <span className={`text-xs px-2 py-1 rounded ${colors[status]}`}>
-      {status}
-    </span>
-  );
-}
-
-function ActionButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="bg-white/5 hover:bg-white/10 border border-white/10 p-3 rounded-xl text-sm transition"
-    >
-      {label}
-    </button>
   );
 }

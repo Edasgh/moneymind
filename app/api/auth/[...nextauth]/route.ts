@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("No user found");
         }
 
-       const isValid = await user.comparePassword(credentials.password);
+        const isValid = await user.comparePassword(credentials.password);
 
         if (!isValid) {
           throw new Error("Invalid password");
@@ -56,9 +56,18 @@ export const authOptions: NextAuthOptions = {
 
     // 🔐 Make it available in frontend session
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
+      if (token) {
+        session.user.id = token.id;
+
+        // fetch latest user data
+        const user = await User.findById(token.id);
+
+        if (user) {
+          session.user.name = user.name;
+          session.user.email = user.email;
+        }
       }
+
       return session;
     },
   },

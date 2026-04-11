@@ -18,7 +18,7 @@ interface IUserMethods {
 //  MODEL TYPE
 type UserModel = Model<IUser, {}, IUserMethods>;
 
-// SCHEMA (IMPORTANT FIX HERE)
+// SCHEMA
 const UserSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
     name: { type: String, required: true },
