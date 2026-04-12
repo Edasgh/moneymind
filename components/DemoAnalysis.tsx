@@ -151,7 +151,7 @@ export default function DemoAnalysis() {
       initial={{ opacity: 0, x: 40, scale: 1 }}
       animate={{ opacity: 1, x: 0, scale: 0.9 }}
       transition={{ delay: 0.5 }}
-      className="mt-12 lg:mt-0 lg:absolute lg:top-30 lg:right-6 w-full max-w-sm mx-auto lg:w-85 origin-top group lg:-z-50"
+      className="mt-12 lg:mt-0 lg:absolute lg:-top-8 lg:right-6 w-full max-w-sm mx-auto lg:w-85 origin-top group lg:-z-50"
     >
       <div className="p-4 space-y-3 rounded-2xl bg-gray-900 border border-gray-800 shadow-lg shadow-blue-500/10 relative">
         <p className="text-[10px] text-blue-400 text-left">Live Demo</p>

@@ -100,51 +100,36 @@ export default function Home() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative text-center mt-30 px-6"
+        className="text-center mt-30 px-6"
       >
-        {/* 🧠 BACKGROUND DEMO (DESKTOP ONLY) */}
-        <div className="hidden lg:block absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 scale-110 opacity-30 blur-sm">
-            <DemoAnalysis />
-          </div>
-        </div>
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-3xl md:text-6xl font-bold leading-tight"
+        >
+          Your AI Financial
+          <span className="bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            {" "}
+            Decision Engine
+          </span>
+          <br />
+          Not Just Another Tracker
+        </motion.h1>
 
-        {/* 🌑 GRADIENT OVERLAY (improves readability) */}
-        <div className="hidden lg:block absolute inset-0 z-1 bg-linear-to-b from-black/80 via-black/60 to-black" />
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-gray-400 mt-6 max-w-2xl mx-auto"
+        >
+          Analyze spending. Predict future. Get decisions.
+          <br />
+          Know what you can afford — before you regret it.
+        </motion.p>
 
-        {/* 📝 FOREGROUND CONTENT */}
-        <div className="relative z-10 px-4">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-3xl md:text-6xl font-bold leading-tight"
-          >
-            Your AI Financial
-            <span className="bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              {" "}
-              Decision Engine
-            </span>
-            <br />
-            Not Just Another Tracker
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-gray-400 mt-6 max-w-2xl mx-auto"
-          >
-            Analyze spending. Predict future. Get decisions.
-            <br />
-            Know what you can afford — before you regret it.
-          </motion.p>
-        </div>
-
-        {/* 📱 MOBILE DEMO */}
-        <div className="mt-10 lg:hidden">
-          <DemoAnalysis />
-        </div>
+        {/* 🔥 DEMO FIRST */}
+        <DemoAnalysis />
 
         {/* 🚀 PRIMARY ACTIONS */}
         <motion.div
@@ -280,6 +265,7 @@ export default function Home() {
         </p>
       </motion.section>
 
+      
       <div className="flex justify-center items-center">
         <DemoChat />
       </div>
