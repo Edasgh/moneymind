@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { sectionColors } from "@/app/analyze/page";
+import { sectionColors } from "@/lib/sectionColors"; 
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 
@@ -87,7 +87,7 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
         <p
           className={`text-sm text-left font-semibold ${getColor()} whitespace-pre-wrap line-clamp-2`}
         >
-          {result?.personality?.replace(/\n/g, " ").split(/[.!?]/)[0]}
+          {(result?.personality??"").replace(/\n/g, " ").split(/[.!?]/)[0]}
         </p>
       </div>
     </div>
@@ -151,7 +151,7 @@ export default function DemoAnalysis() {
       initial={{ opacity: 0, x: 40, scale: 1 }}
       animate={{ opacity: 1, x: 0, scale: 0.9 }}
       transition={{ delay: 0.5 }}
-      className="mt-12 lg:mt-0 lg:absolute lg:top-0 lg:right-6 w-full max-w-sm mx-auto lg:w-85 origin-top group lg:-z-50"
+      className="mt-12 lg:mt-0 lg:absolute lg:top-0 lg:right-6 w-full max-w-sm mx-auto lg:w-85 origin-top group"
     >
       <div className="p-4 space-y-3 rounded-2xl bg-gray-900 border border-gray-800 shadow-lg shadow-blue-500/10 relative">
         <p className="text-[10px] text-blue-400 text-left">Live Demo</p>

@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { sectionColors } from "@/app/analyze/page";
+import { sectionColors } from "@/lib/sectionColors"; 
 import { Brain, Lightbulb, Target, TrendingDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
