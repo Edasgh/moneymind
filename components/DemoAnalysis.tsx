@@ -1,19 +1,30 @@
 "use client";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { sectionColors } from "@/lib/sectionColors"; 
+import { sectionColors } from "@/lib/sectionColors";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 
-function ScoreCardPreview({ score, result }: { score: number; result: any }) {
-  const radius = 40; // 👈 smaller
+function ScoreCardPreview({
+  score,
+  result,
+  summary,
+}: {
+  score: number;
+  result: any;
+  summary: {
+    spent: number;
+    income: number;
+    balance: number;
+  };
+}) {
+  const radius = 40;
   const stroke = 6;
   const normalizedRadius = radius - stroke / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
 
   const [animatedScore, setAnimatedScore] = useState(0);
 
-  // 🎯 Animate score (0 → actual)
   useEffect(() => {
     let start = 0;
     const interval = setInterval(() => {
@@ -37,58 +48,67 @@ function ScoreCardPreview({ score, result }: { score: number; result: any }) {
     return "text-green-400";
   };
 
-  const getPersonalityEmoji = () => {
-    if (score < 40) return "😬";
-    if (score < 70) return "😅";
-    return "😎";
-  };
-
   return (
-    <div className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/10">
-      {/* 🔵 MINI RING */}
-      <div className="relative flex items-center justify-center">
-        <svg height={radius * 2} width={radius * 2} className="-rotate-90">
-          <circle
-            stroke="#1f2937"
-            fill="transparent"
-            strokeWidth={stroke}
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
-          />
+    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-3">
+      {/* 🔵 TOP: SCORE + PERSONALITY */}
+      <div className="flex items-center gap-3">
+        {/* RING */}
+        <div className="relative flex items-center justify-center">
+          <svg height={radius * 2} width={radius * 2} className="-rotate-90">
+            <circle
+              stroke="#1f2937"
+              fill="transparent"
+              strokeWidth={stroke}
+              r={normalizedRadius}
+              cx={radius}
+              cy={radius}
+            />
 
-          <motion.circle
-            stroke="#3b82f6"
-            fill="transparent"
-            strokeWidth={stroke}
-            strokeDasharray={`${circumference} ${circumference}`}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
-            transition={{ duration: 1 }}
-          />
-        </svg>
+            <motion.circle
+              stroke="#3b82f6"
+              fill="transparent"
+              strokeWidth={stroke}
+              strokeDasharray={`${circumference} ${circumference}`}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              r={normalizedRadius}
+              cx={radius}
+              cy={radius}
+              transition={{ duration: 1 }}
+            />
+          </svg>
 
-        {/* SCORE */}
-        <span className={`absolute text-sm font-bold ${getColor()}`}>
-          {animatedScore}
-        </span>
-      </div>
-
-      {/* 🧠 TEXT SIDE */}
-      <div className="flex-1">
-        <div className="flex items-center gap-2 text-xs text-gray-400">
-          <span>Score</span>
-          <span>{getPersonalityEmoji()}</span>
+          <span className={`absolute text-sm font-bold ${getColor()}`}>
+            {animatedScore}
+          </span>
         </div>
 
-        <p
-          className={`text-sm text-left font-semibold ${getColor()} whitespace-pre-wrap line-clamp-2`}
-        >
-          {(result?.personality??"").replace(/\n/g, " ").split(/[.!?]/)[0]}
-        </p>
+        {/* TEXT */}
+        <div className="flex-1">
+          <p className="text-[10px] text-gray-400">Financial Score</p>
+
+          <p className={`text-sm font-semibold ${getColor()} line-clamp-2`}>
+            {(result?.personality ?? "").replace(/\n/g, " ").split(/[.!?]/)[0]}
+          </p>
+        </div>
+      </div>
+
+      {/* 💸 SUMMARY (NEW) */}
+      <div className="grid grid-cols-3 gap-2 text-[11px]">
+        <div className="bg-black/40 p-2 rounded-lg text-center border border-white/5">
+          <p className="text-gray-400">Spent</p>
+          <p className="text-red-400 font-semibold">₹{summary.spent}</p>
+        </div>
+
+        <div className="bg-black/40 p-2 rounded-lg text-center border border-white/5">
+          <p className="text-gray-400">Income</p>
+          <p className="text-green-400 font-semibold">₹{summary.income}</p>
+        </div>
+
+        <div className="bg-black/40 p-2 rounded-lg text-center border border-white/5">
+          <p className="text-gray-400">Balance</p>
+          <p className="text-blue-400 font-semibold">₹{summary.balance}</p>
+        </div>
       </div>
     </div>
   );
@@ -107,9 +127,13 @@ export default function DemoAnalysis() {
     impact:
       "If this continues, you’ll struggle to build savings despite earning enough. Over time, this leads to financial stress and dependence on credit.",
   };
-  const inputs = [
-    " 📂 Uploading & processing transactions...",
-  ];
+
+  const summary = {
+    spent: 18500,
+    income: 25000,
+    balance: 6500,
+  };
+  const inputs = [" 📂 Uploading & processing transactions..."];
 
   const [step, setStep] = useState<"uploading" | "analyzing" | "done">(
     "uploading",
@@ -119,32 +143,32 @@ export default function DemoAnalysis() {
   const router = useRouter();
 
   // ✨ TYPEWRITER INPUTS
- useEffect(() => {
-   let charIndex = 0;
-   const text = "📂 Uploading & processing transactions...";
+  useEffect(() => {
+    let charIndex = 0;
+    const text = "📂 Uploading & processing transactions...";
 
-   const typing = setInterval(() => {
-     setTypedText(text.slice(0, charIndex));
-     charIndex++;
+    const typing = setInterval(() => {
+      setTypedText(text.slice(0, charIndex));
+      charIndex++;
 
-     if (charIndex > text.length) {
-       clearInterval(typing);
+      if (charIndex > text.length) {
+        clearInterval(typing);
 
-       // ⏳ Move to analyzing
-       setTimeout(() => {
-         setStep("analyzing");
+        // ⏳ Move to analyzing
+        setTimeout(() => {
+          setStep("analyzing");
 
-         // ⏳ After analyzing → show result
-         setTimeout(() => {
-           setStep("done");
-           setShowOutput(true);
-         }, 1500);
-       }, 800);
-     }
-   }, 25);
+          // ⏳ After analyzing → show result
+          setTimeout(() => {
+            setStep("done");
+            setShowOutput(true);
+          }, 1500);
+        }, 800);
+      }
+    }, 25);
 
-   return () => clearInterval(typing);
- }, []);
+    return () => clearInterval(typing);
+  }, []);
 
   return (
     <motion.div
@@ -195,7 +219,11 @@ export default function DemoAnalysis() {
             transition={{ duration: 0.5 }}
             className="space-y-2 text-xs text-gray-300"
           >
-            <ScoreCardPreview result={dummyResult} score={72} />
+            <ScoreCardPreview
+              result={dummyResult}
+              summary={summary}
+              score={72}
+            />
 
             {/* INSIGHT */}
             <motion.div

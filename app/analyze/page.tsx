@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Lightbulb, Target, TrendingDown } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { motion } from "framer-motion";
+import { motion, number } from "framer-motion";
 import AddTransactionModal from "@/components/AddTransactionModal";
 import TransactionTable from "@/components/TransactionTable";
 import { useRouter } from "next/navigation";
@@ -40,10 +40,9 @@ export default function Analyze() {
   const [income, setIncome] = useState("0");
 
   const [showAddModal, setShowAddModal] = useState(false);
-  // ✅ Manual transactions
+  //  Manual transactions
   const [manualTransactions, setManualTransactions] = useState<any[]>([]);
-
-  // ✅ Statements
+  //  Statements
   const [statements, setStatements] = useState<
     {
       _id: string;
@@ -60,7 +59,7 @@ export default function Analyze() {
   const [showUpload, setShowUpload] = useState(false);
 
   // =========================
-  // 🧠 ALL TRANSACTIONS (AI USES THIS)
+  //  ALL TRANSACTIONS (AI USES THIS)
   // =========================
   const allTransactions = [
     ...manualTransactions,
@@ -68,7 +67,7 @@ export default function Analyze() {
   ];
 
   // =========================
-  // 📄 SELECTED STATEMENT DATA
+  //  SELECTED STATEMENT DATA
   // =========================
   const selectedTransactions =
     statements.find((s) => s._id === selectedStatementId)
@@ -104,15 +103,27 @@ export default function Analyze() {
     }
   }, [finance]);
 
-  // TODO : change monthly income on mouse out
-  const changeMonthlyIncome = async () => {
-    const res = await fetch("/api/profile", {
-      method: "PATCH",
-      body: JSON.stringify({
-        financeId: "",
-        monthlyIncome: Number(income),
-      }),
-    });
+  // change monthly income on mouse out
+  let timeout: NodeJS.Timeout;
+
+  const changeMonthlyIncome = () => {
+    if(!income|| Number(income)===0){
+      toast.error("Invalid income input!");
+      return;
+    }
+    clearTimeout(timeout);
+
+    timeout = setTimeout(async () => {
+      await fetch("/api/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          monthlyIncome: Number(income),
+        }),
+      });
+    }, 800); // wait 800 ms
   };
 
   const simulate = () => {
@@ -315,6 +326,7 @@ export default function Analyze() {
             <input
               value={income}
               onChange={(e) => setIncome(e.target.value)}
+              onBlur={changeMonthlyIncome}
               placeholder="₹25000"
               className="w-full p-3 text-base md:text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
             />
