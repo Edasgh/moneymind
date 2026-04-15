@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import User from "@/models/User";
+import Finance from "@/models/Finance";
 import { connectDB } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
     const { name, email, password, country } = await req.json();
 
-    // 🔒 Basic validation
+    // 🔒 Validation
     if (!name || !email || !password || !country) {
       return NextResponse.json(
         { error: "All fields are required" },
@@ -25,12 +26,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ DO NOT HASH HERE
+    // 👤 Create User
     const user = await User.create({
       name,
       email,
-      password, // 🔥 raw password → schema will hash it
+      password,
       country,
+    });
+
+    // 💰 Create Finance doc (MINIMAL)
+    await Finance.create({
+      userId: user._id,
+      monthlyIncome: 0,
+      transactions: [],
+      statements: [],
+      aiHistory: [],
+      goals: [],
     });
 
     return NextResponse.json(
@@ -46,7 +57,6 @@ export async function POST(req: Request) {
     );
   } catch (err) {
     console.error("Signup error:", err);
-
     return NextResponse.json({ error: "Signup failed" }, { status: 500 });
   }
 }

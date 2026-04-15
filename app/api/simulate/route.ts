@@ -23,17 +23,3 @@ export async function POST(req: Request) {
 
   return Response.json(result);
 }
-
-
-/*
-
-<input
-  type="number"
-  placeholder="Reduce by ₹5000"
-  onChange={(e) => setValue(Number(e.target.value))}
-/>
-
-<button onClick={simulate}>
-  Simulate
-</button>
-*/

@@ -75,7 +75,7 @@ export default function UploadStatement({
     formData.append("fileName", file.name);
 
     try {
-      // ✅ ONLY upload (no AI here)
+      // ONLY upload (no AI here)
       const uploadRes = await fetch("/api/uploadFile", {
         method: "POST",
         body: formData,
@@ -87,14 +87,33 @@ export default function UploadStatement({
 
       const statementId = resData.statementId;
 
-      // ✅ queued for worker
+      // queued for worker
       setStep("queued");
 
-      // 🔁 start polling
+      try {
+        const res = await fetch("/api/internal/trigger-workers");
+
+        if (!res.ok) {
+          throw new Error("Worker trigger failed");
+        }
+
+        // 🔥 Smooth UX → move to processing early
+        setTimeout(() => {
+          setStep("processing");
+        }, 1200);
+      } catch (err) {
+        console.error("Worker trigger error:", err);
+
+        // Don't block user — cron will still process
+        toast.warn("Processing may be delayed...");
+      }
+
+      // start polling
       pollStatus(statementId);
     } catch (err) {
       console.error(err);
       toast.error("Upload failed");
+    } finally {
       setLoading(false);
       setStep("idle");
     }
@@ -150,7 +169,7 @@ export default function UploadStatement({
 
                 {step === "uploading" && "Uploading..."}
                 {step === "queued" && "Queued..."}
-                {step === "processing" && "Analyzing..."}
+                {step === "processing" && "Analyzing your finances..."}
                 {step === "idle" && "Upload & Analyze"}
               </button>
 
@@ -158,7 +177,7 @@ export default function UploadStatement({
               {loading && (
                 <p className="text-xs text-gray-400 text-center">
                   {step === "uploading" && "Uploading your file..."}
-                  {step === "queued" && "Waiting in queue..."}
+                  {step === "queued" && "Preparing Analysis..."}
                   {step === "processing" && "AI is analyzing your spending..."}
                 </p>
               )}
