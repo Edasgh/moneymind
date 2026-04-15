@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Lightbulb, Target, TrendingDown } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -24,7 +24,6 @@ type Transaction = {
   mode: string;
   date: string;
 };
-
 
 export default function Analyze() {
   const { data: session } = useSession();
@@ -63,7 +62,7 @@ export default function Analyze() {
   // =========================
   const allTransactions = [
     ...manualTransactions,
-    ...statements.flatMap((s) => s.extractedTransactions),
+    ...statements.flatMap((s) => s.extractedTransactions || []),
   ];
 
   // =========================
@@ -98,27 +97,29 @@ export default function Analyze() {
   }, [fianceStatements]);
 
   useEffect(() => {
-    if (finance?.transactions) {
-      setManualTransactions(finance.transactions);
+    if (finance) {
+      if (finance.transactions) {
+        setManualTransactions(finance.transactions);
+      }
+      setIncome(finance.monthlyIncome.toString());
     }
   }, [finance]);
 
   // change monthly income on mouse out
-  let timeout: NodeJS.Timeout;
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const changeMonthlyIncome = () => {
-    if(!income|| Number(income)===0){
+    if (!income || Number(income) === 0 || Number(income) < 0) {
       toast.error("Invalid income input!");
       return;
     }
-    clearTimeout(timeout);
 
-    timeout = setTimeout(async () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    timeoutRef.current = setTimeout(async () => {
       await fetch("/api/profile", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           monthlyIncome: Number(income),
         }),
@@ -198,8 +199,13 @@ export default function Analyze() {
 
         <!-- CONTENT -->
         ${section("Personality", latestAnalysis?.personality)}
-        ${section("Key Insights", latestAnalysis?.insights?.join(", "))}
-        ${section("Action Plan", latestAnalysis?.fixes?.join(", "))}
+        ${section(
+          "Key Insights",
+          latestAnalysis?.insights?.map(
+            (i: { text: string; type: string }) => i.text,
+          ),
+        )}
+        ${section("Action Plan", latestAnalysis?.fixes?.map((f: { action: string; priority: string }) => f.action).join(", "))}
         ${section("Financial Impact", latestAnalysis?.impact)}
 
         <!-- FOOTER -->
@@ -304,6 +310,9 @@ export default function Analyze() {
             onAdd={async (tx: Transaction) => {
               const res = await fetch("/api/transaction", {
                 method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
                 body: JSON.stringify(tx),
               });
 
