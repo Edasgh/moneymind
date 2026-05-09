@@ -10,7 +10,7 @@ const transactionSchema = new mongoose.Schema({
 
 const StatementSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" ,required:true},
 
     fileName: String,
     storageId: String,
