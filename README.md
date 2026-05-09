@@ -338,4 +338,4 @@ MoneyMind AI helps users:
 
 ## 🙌 Author
 
-Built with ❤️ for hackathons & real-world impact
+Built with ❤️ for real-world impact
