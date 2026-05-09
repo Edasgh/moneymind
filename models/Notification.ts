@@ -16,6 +16,13 @@ const NotificationSchema = new mongoose.Schema(
         "STATEMENT_PROCESSED",
         "ANALYSIS_READY",
         "GOAL_UPDATE",
+        
+        // NEWLY ADDED
+        "TRANSACTION_ADDED",
+        "LEVEL_UP",
+        "ACHIEVEMENT_UNLOCKED",
+        "STREAK_UPDATE",
+        "ANALYSIS_SKIPPED",
       ],
       required: true,
     },
