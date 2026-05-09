@@ -5,9 +5,12 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import NotFound from "../not-found";
 import { toast } from "react-toastify";
+import { useState } from "react";
+import EditProfileModal from "@/components/EditProfileModal";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
+  const [showModal,setShowModal] = useState(false);
   const router = useRouter();
 
   if (!session) {
@@ -20,6 +23,9 @@ export default function ProfilePage() {
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-75 sm:w-125 h-50 sm:h-75 bg-purple-500/10 blur-[100px]" />
       </div>
+
+      {/* TODO : DEFINE EDIT PROFILE FUNCTION  */}
+      {/* {showModal && (<EditProfileModal show={showModal} setShow={setShowModal} user={session.user} onSave={async()=>{}} />)} */}
 
       <div className="max-w-md sm:max-w-xl mx-auto mt-10 sm:mt-16 space-y-6">
         {/* HEADER */}
@@ -43,7 +49,10 @@ export default function ProfilePage() {
           className="p-5 sm:p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl text-center space-y-3"
         >
           {/* Avatar */}
-          <div style={{width:"50px",height:"50px"}} className="mx-auto rounded-full bg-linear-to-r from-blue-500 to-purple-500 flex items-center justify-center text-base sm:text-lg font-bold">
+          <div
+            style={{ width: "50px", height: "50px" }}
+            className="mx-auto rounded-full bg-linear-to-r from-blue-500 to-purple-500 flex items-center justify-center text-base sm:text-lg font-bold"
+          >
             {session.user?.name?.[0] || "U"}
           </div>
 
@@ -60,7 +69,8 @@ export default function ProfilePage() {
           {/* ACTIONS */}
           <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
             <button
-              onClick={() => toast.info("Edit profile coming soon")}
+              onClick={()=>toast.info("Edit Profile Coming Soon!")}
+              // onClick={()=>setShowModal(true)}
               className="w-full sm:w-auto px-4 py-2 text-sm rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/20 transition active:scale-95"
             >
               Edit Profile

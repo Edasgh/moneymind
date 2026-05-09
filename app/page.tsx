@@ -202,7 +202,8 @@ export default function Home() {
 
       {/* WHO IT'S FOR */}
       <p className="text-center text-gray-400 mt-12">
-        Built for people who know what to do… but still don’t do it.
+        Built for anyone trying to take control of their money—one step at a
+        time.
       </p>
 
       {/* FEATURES */}
@@ -216,15 +217,15 @@ export default function Home() {
         {[
           {
             title: "🧠 AI Behavior Analysis",
-            desc: "Understands your spending patterns and detects hidden habits.",
+            desc: "Detects spending patterns and turns them into simple, actionable insights.",
           },
           {
             title: "⚖️ Smart Financial Decisions",
-            desc: "Ask 'Can I afford this?' and get instant AI-backed answers.",
+            desc: "Instant answers to 'Can I afford this?' — clear, practical, and easy to follow.",
           },
           {
             title: "🔮 Future Predictions",
-            desc: "Forecast your next month expenses before they happen.",
+            desc: "See upcoming expenses ahead of time with easy-to-understand forecasts.",
           },
         ].map((f, i) => (
           <motion.div
@@ -241,13 +242,13 @@ export default function Home() {
       </motion.section>
       <section className="mt-20 text-center px-6">
         <h2 className="text-2xl font-semibold mb-4">
-          🤖 Autonomous Money Assistant
+          🤖 AI That Understands Your Money
         </h2>
 
         <p className="text-gray-400 max-w-2xl mx-auto">
-          MoneyMind doesn't just track — it thinks, predicts, and alerts you. It
-          learns your behavior and guides you toward better financial decisions
-          automatically.
+          Built for financial inclusion — whether you're just starting or
+          improving habits, MoneyMind understands your behavior and gives
+          simple, personalized guidance you can actually follow.
         </p>
       </section>
       <motion.section
@@ -258,14 +259,13 @@ export default function Home() {
         className="pt-20"
       >
         <h2 className="text-center text-2xl font-semibold mb-6">
-          💬 Just talk it out
+          💬 Talk to Your AI Money Guide
         </h2>
         <p className="text-center text-gray-400 mb-10">
-          Not ready for analysis? Start with a simple conversation.
+          Smart answers for your money, instantly.
         </p>
       </motion.section>
 
-      
       <div className="flex justify-center items-center">
         <DemoChat />
       </div>
@@ -278,21 +278,20 @@ export default function Home() {
       {/* CTA */}
       <section className="mt-28 text-center pb-20 px-6">
         <h2 className="text-3xl font-bold mt-6 mb-4">
-          Start Improving Your Financial Habits Today
+          Start Building Better Money Habits Today
         </h2>
 
-        <p className="text-gray-400 mb-6">
-          Most people never fix their money habits.
-          <br />
-          Start before it compounds.
+        <p className="text-gray-400 mb-6 max-w-xl mx-auto">
+          You don’t need to be a finance expert. Start small, understand your
+          spending, and improve step by step.
         </p>
 
-        {/* URGENCY */}
-        <p className="text-xs md:text-sm text-red-400 mb-6">
-          Every month you delay = more money lost silently
+        {/* GENTLE NUDGE */}
+        <p className="text-xs md:text-sm text-yellow-400 mb-6">
+          Even small changes today can make a big difference over time
         </p>
 
-        {/* 🔥 FINAL CTA */}
+        {/* CTA */}
         <motion.button
           onClick={() => {
             if (session) {
@@ -301,11 +300,15 @@ export default function Home() {
               setShowLoginModal(true);
             }
           }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className="relative px-8 py-4 rounded-xl text-base md:text-lg font-semibold bg-linear-to-r from-blue-500 to-purple-600 shadow-xl shadow-blue-500/30 hover:scale-105 transition-all duration-300"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.96 }}
+          className="relative px-8 py-4 rounded-xl text-base md:text-lg font-semibold 
+    bg-linear-to-r from-blue-500 to-purple-600 
+    shadow-xl shadow-blue-500/30 
+    hover:shadow-purple-500/30 
+    transition-all duration-300"
         >
-          🧠 Fix My Money Habits
+          🚀 Start My Money Journey
         </motion.button>
       </section>
       <Footer

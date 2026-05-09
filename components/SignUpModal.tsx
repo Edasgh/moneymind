@@ -170,27 +170,6 @@ export default function SignUpModal({
                 {loading ? "Logging in..." : "🚀 Login & Continue "}
               </button>
             </form>
-
-            {/* FOOTER */}
-            {/* <p className="text-xs text-gray-500 text-center mt-4">
-              Don't have an account?{" "}
-              <span
-                onClick={() => {
-                  setShow(false);
-                  setShowModal(true);
-                }}
-                className="text-blue-400 cursor-pointer hover:underline"
-              >
-                Sign up
-              </span>
-            </p> */}
-
-            {/* <p className="text-[10px] text-gray-600 text-center mt-2">
-              By continuing, you agree to our{" "}
-              <span className="text-blue-400 cursor-pointer hover:underline">
-                Terms & Privacy Policy{" "}
-              </span>
-            </p> */}
           </div>
         </motion.div>
       </>

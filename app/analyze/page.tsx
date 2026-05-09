@@ -2,37 +2,41 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Lightbulb, Target, TrendingDown } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { motion, number } from "framer-motion";
+import { motion } from "framer-motion";
 import AddTransactionModal from "@/components/AddTransactionModal";
 import TransactionTable from "@/components/TransactionTable";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import ScoreCard from "@/components/ScoreCard";
 import NotFound from "../not-found";
 import UploadStatement from "@/components/UploadStatement";
-import { sectionColors } from "@/lib/sectionColors";
 
-import { useFinance } from "@/hooks/useFinance";
-import SpendingChart from "@/components/SpendingCharts";
+import { Goal, Transaction, useFinance } from "@/hooks/useFinance";
+import SpendingChart from "@/components/SpendingChart";
 
-type Transaction = {
-  amount: number;
-  category: string;
-  type: "Income" | "Expense";
-  mode: string;
-  date: string;
-};
+// gamification, lifemetrics, scenario simulation added
+import GamificationCard from "@/components/GamificationCard";
+import LifeImpactCard from "@/components/LifeImpactCard";
+import ScenarioEngine from "@/components/ScenarioEngine";
+import { currencyMap } from "@/lib/currencyMap";
+import StatementsCard from "@/components/StatementsCard";
+import GoalsSection from "@/components/GoalsSection";
+import AIAnalysis from "@/components/AIAnalysis";
+import { convertToPdf } from "@/lib/convertToPdf";
 
 export default function Analyze() {
   const { data: session } = useSession();
-  const { finance, statements: fianceStatements } = useFinance();
+  const {
+    finance,
+    statements: fianceStatements,
+    updateFinanceLocal,
+    loading,
+  } = useFinance();
   const latestAnalysis = finance?.aiHistory?.at(-1);
 
   const [simulateValue, setSimulateValue] = useState(0);
   const [simulatedExpense, setSimulatedExpense] = useState<number | null>(null);
-  const [html2pdfInstance, setHtml2pdfInstance] = useState<any>(null);
 
   const router = useRouter();
 
@@ -84,13 +88,6 @@ export default function Analyze() {
     .reduce((acc, t) => acc + Number(t.amount), 0);
 
   useEffect(() => {
-    // Dynamically import html2pdf.js on client
-    import("html2pdf.js").then((mod) => {
-      setHtml2pdfInstance(() => mod.default);
-    });
-  }, []);
-
-  useEffect(() => {
     if (fianceStatements) {
       setStatements(fianceStatements);
     }
@@ -109,7 +106,7 @@ export default function Analyze() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const changeMonthlyIncome = () => {
-    if (!income || Number(income) === 0 || Number(income) < 0) {
+    if (!income || Number(income) <= 0) {
       toast.error("Invalid income input!");
       return;
     }
@@ -121,14 +118,18 @@ export default function Analyze() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          financeId: finance?._id,
           monthlyIncome: Number(income),
         }),
+      });
+      updateFinanceLocal({
+        monthlyIncome: Number(income),
       });
     }, 800); // wait 800 ms
   };
 
   const simulate = () => {
-    if (!finance?.prediction?.nextMonthExpense) return;
+    if (!finance?.prediction?.nextMonthExpense || simulateValue <= 0) return;
 
     const newExpense = finance.prediction.nextMonthExpense - simulateValue;
 
@@ -136,104 +137,13 @@ export default function Analyze() {
     toast.success("Future updated based on your decision 🚀");
   };
 
+  const currency_str =
+    currencyMap[
+      session?.user?.country ?? ("India" as keyof typeof currencyMap)
+    ] || "₹";
+
   const downloadResult = () => {
-    if (!html2pdfInstance || !latestAnalysis) {
-      alert("Can't download result! Try again.");
-      return;
-    }
-
-    // 🔹 reusable section
-    const section = (title: string, content: string) => `
-      <div style="margin-bottom:18px;">
-        <div style="
-          font-size:11px;
-          color:#6b7280;
-          font-weight:600;
-          margin-bottom:6px;
-          letter-spacing:0.5px;
-          text-transform:uppercase;
-        ">
-          ${title}
-        </div>
-        <div style="font-size:14px; color:#111827;">
-          ${content || "-"}
-        </div>
-      </div>
-    `;
-
-    const element = document.createElement("div");
-
-    element.innerHTML = `
-      <div style="
-        font-family: Inter, Arial, sans-serif;
-        padding: 40px;
-        color: #111827;
-        line-height: 1.6;
-      ">
-
-        <!-- HEADER -->
-        <div style="margin-bottom:20px;">
-          <h1 style="font-size:24px; margin:0;">
-            MoneyMind Report
-          </h1>
-
-          <div style="
-            font-size:13px;
-            color:#6b7280;
-            margin-top:4px;
-          ">
-            AI-powered financial behavior analysis
-          </div>
-
-          <div style="
-            margin-top:12px;
-            font-size:16px;
-            font-weight:600;
-            color:#2563eb;
-          ">
-            Score: ${latestAnalysis?.score ?? 0} / 100
-          </div>
-        </div>
-
-        <hr style="border:none; border-top:1px solid #e5e7eb; margin:20px 0;" />
-
-        <!-- CONTENT -->
-        ${section("Personality", latestAnalysis?.personality)}
-        ${section(
-          "Key Insights",
-          latestAnalysis?.insights?.map(
-            (i: { text: string; type: string }) => i.text,
-          ),
-        )}
-        ${section("Action Plan", latestAnalysis?.fixes?.map((f: { action: string; priority: string }) => f.action).join(", "))}
-        ${section("Financial Impact", latestAnalysis?.impact)}
-
-        <!-- FOOTER -->
-        <div style="
-          margin-top:40px;
-          font-size:10px;
-          color:#9ca3af;
-        ">
-          Generated by MoneyMind • Behavioral Finance AI
-        </div>
-
-      </div>
-    `;
-
-    html2pdfInstance()
-      .set({
-        margin: 0,
-        filename: "MoneyMind-Report.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: {
-          unit: "mm",
-          format: "a4",
-          orientation: "portrait",
-        },
-      })
-      .from(element)
-      .save();
+    convertToPdf(latestAnalysis, currency_str);
   };
 
   let scoreColor = "text-red-400";
@@ -252,7 +162,7 @@ export default function Analyze() {
   }
 
   return (
-    <div className="min-h-screen h-auto bg-black text-white px-3 md:p-6">
+    <div className="min-h-screen h-auto bg-black text-white px-3 md:p-6 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
         {/* BACKGROUND GLOW */}
         <div className="absolute inset-0 -z-10">
@@ -307,6 +217,7 @@ export default function Analyze() {
             onClose={() => {
               setShowAddModal(false);
             }}
+            currency_str={currency_str}
             onAdd={async (tx: Transaction) => {
               const res = await fetch("/api/transaction", {
                 method: "POST",
@@ -319,7 +230,9 @@ export default function Analyze() {
               const data = await res.json();
 
               if (res.ok) {
-                setManualTransactions(data.transactions);
+                updateFinanceLocal({ transactions: data.transactions });
+                // setManualTransactions(data.transactions);
+                setShowAddModal(false);
                 toast.success("Transaction added 🚀");
               } else {
                 toast.error("Failed to add transaction");
@@ -329,275 +242,734 @@ export default function Analyze() {
         )}
 
         {/* SUMMARY */}
-        <div className="grid grid-cols-3 gap-4">
-          <GlassCard>
-            <p className="text-xs text-gray-400 mb-1">Monthly Income</p>
-            <input
-              value={income}
-              onChange={(e) => setIncome(e.target.value)}
-              onBlur={changeMonthlyIncome}
-              placeholder="₹25000"
-              className="w-full p-3 text-base md:text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-pulse">
+            {/* INCOME */}
+            <div className="p-5 rounded-xl bg-white/5 border border-white/10 space-y-3">
+              <div className="h-3 w-24 bg-white/10 rounded" />
+              <div className="h-10 w-full bg-white/10 rounded-xl" />
+            </div>
+
+            {/* SPENT */}
+            <div className="p-5 rounded-xl bg-white/5 border border-white/10 space-y-3">
+              <div className="h-3 w-16 bg-white/10 rounded" />
+              <div className="h-6 w-32 bg-white/10 rounded" />
+            </div>
+
+            {/* BALANCE */}
+            <div className="p-5 rounded-xl bg-white/5 border border-white/10 space-y-3">
+              <div className="h-3 w-16 bg-white/10 rounded" />
+              <div className="h-6 w-32 bg-white/10 rounded" />
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <GlassCard>
+              <p className="text-xs text-gray-400 mb-1">Monthly Income</p>
+              <input
+                value={income}
+                onChange={(e) => setIncome(e.target.value)}
+                onBlur={changeMonthlyIncome}
+                placeholder={`${currency_str}25000`}
+                className="w-full p-3 text-base md:text-sm rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </GlassCard>
+            <Card
+              title="Spent"
+              red={true}
+              value={`${currency_str}${totalSpent}`}
             />
-          </GlassCard>
-          <Card title="Spent" value={`₹${totalSpent}`} />
-          <Card title="Balance" value={`₹${totalIncome - totalSpent}`} />
-        </div>
+            <Card
+              title="Balance"
+              green={true}
+              value={`${currency_str}${totalIncome - totalSpent}`}
+            />
+          </div>
+        )}
+
+        {!loading && !finance && (
+          <button className="text-xs px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 transition">
+            Use Sample Data
+          </button>
+        )}
 
         {/* MAIN GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT: STATEMENTS */}
-          <div className="space-y-4">
-            <GlassCard>
-              <div className="flex justify-between mb-3">
-                <p className="text-sm text-gray-400">Statements</p>
-
-                <button
-                  onClick={() => setShowUpload(true)}
-                  className="text-xs bg-purple-500/20 px-3 py-1 rounded"
-                >
-                  Upload
-                </button>
-              </div>
-
-              {statements.length === 0 ? (
-                <p className="text-xs text-gray-500">No statements uploaded</p>
+          <div className="lg:col-span-2 space-y-4">
+            {/* 🎮 GAMIFICATION & 🧠 LIFE IMPACT */}
+            <div className="flex flex-col md:flex-row w-full justify-center items-start gap-4">
+              {/* 🎮 GAMIFICATION */}
+              {loading ? (
+                <GamificationLoader />
               ) : (
-                <div className="space-y-2">
-                  {statements.map((s) => (
-                    <div
-                      key={s._id}
-                      onClick={() => setSelectedStatementId(s._id)}
-                      className={`p-2 rounded cursor-pointer text-xs ${
-                        selectedStatementId === s._id
-                          ? "bg-blue-500/20"
-                          : "bg-white/5 hover:bg-white/10"
-                      }`}
-                    >
-                      📄 {s.fileName}
-                    </div>
-                  ))}
+                <div className="flex-1">
+                  {finance && (
+                    <>
+                      {allTransactions.length < 10 ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 25 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-5 rounded-2xl border border-white/10 bg-linear-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-xl space-y-4"
+                        >
+                          {/* HEADER */}
+                          <div className="flex justify-between items-center">
+                            <p className="text-sm font-medium text-white">
+                              🎮 Your Progress
+                            </p>
+
+                            <span className="text-xs px-2 py-1 bg-white/10 rounded-lg text-gray-400">
+                              Locked
+                            </span>
+                          </div>
+
+                          {/* LOCKED STATE */}
+                          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
+                            {/* ICON + TEXT */}
+                            <div className="flex items-center gap-3">
+                              <div className="text-2xl">🔒</div>
+                              <div>
+                                <p className="text-sm font-medium text-white">
+                                  Gamification Locked
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Start tracking transactions to unlock progress
+                                  tracking
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* PROGRESS */}
+                            <div>
+                              <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                                <span>Data Progress</span>
+                                <span>{allTransactions.length}/10</span>
+                              </div>
+
+                              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all"
+                                  style={{
+                                    width: `${Math.min(
+                                      (allTransactions.length / 10) * 100,
+                                      100,
+                                    )}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* INFO */}
+                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                              Earn XP, unlock achievements, and build streaks
+                              once enough data is available.
+                            </p>
+
+                            {/* PREVIEW (ghost achievements) */}
+                            <div className="flex gap-2 opacity-40">
+                              <span className="text-[10px] px-2 py-1 rounded-full bg-green-500/20 border border-green-500/20">
+                                📈 High Discipline
+                              </span>
+                              <span className="text-[10px] px-2 py-1 rounded-full bg-green-500/20 border border-green-500/20">
+                                🔥 Budget Master
+                              </span>
+                            </div>
+
+                            {/* CTA */}
+                            <button
+                              onClick={() => {
+                                if (Number(income) <= 0) {
+                                  toast.error(
+                                    "Enter your monthly income amount first",
+                                  );
+                                } else {
+                                  setShowUpload(true);
+                                }
+                              }}
+                              className="w-full text-xs py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
+                            >
+                              Start Tracking
+                            </button>
+
+                            {/* TIP */}
+                            <p className="text-[10px] text-gray-500 text-center">
+                              Tip: Consistent tracking unlocks streaks & rewards
+                            </p>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <>
+                          {finance.gamification && (
+                            <GamificationCard game={finance.gamification} />
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
-            </GlassCard>
+              {/* 🧠 LIFE IMPACT */}
+              {loading ? (
+                <LifeImpactCardLoader />
+              ) : (
+                <>
+                  {finance && (
+                    <div className="flex-1">
+                      {allTransactions.length < 15 ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="w-full p-5 rounded-2xl bg-linear-to-br from-blue-500/10 to-purple-500/10 border border-white/10 backdrop-blur-xl space-y-4"
+                        >
+                          {/* HEADER */}
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-sm font-medium text-white">
+                                🧠 Life Impact
+                              </p>
+                              <p className="text-[11px] text-gray-500">
+                                Understand how your finances affect your life
+                              </p>
+                            </div>
+
+                            <span className="text-xs px-2 py-1 bg-white/10 rounded-lg text-gray-400">
+                              Locked
+                            </span>
+                          </div>
+
+                          {/* LOCKED CARD */}
+                          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
+                            {/* ICON + TEXT */}
+                            <div className="flex items-center gap-3">
+                              <div className="text-2xl">🔒</div>
+                              <div>
+                                <p className="text-sm font-medium text-white">
+                                  Life Impact Insights Locked
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Not enough data to evaluate financial
+                                  stability & risk
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* PROGRESS */}
+                            <div>
+                              <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                                <span>Data Progress</span>
+                                <span>{allTransactions.length}/15</span>
+                              </div>
+
+                              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all"
+                                  style={{
+                                    width: `${Math.min(
+                                      (allTransactions.length / 15) * 100,
+                                      100,
+                                    )}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* PREVIEW METRICS (ghost UI) */}
+                            <div className="grid grid-cols-2 gap-3 opacity-40">
+                              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                                <p className="text-[10px] text-gray-400">
+                                  Stability
+                                </p>
+                                <p className="text-lg font-semibold">--%</p>
+                              </div>
+
+                              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                                <p className="text-[10px] text-gray-400">
+                                  Stress Risk
+                                </p>
+                                <p className="text-lg font-semibold">--</p>
+                              </div>
+                            </div>
+
+                            {/* INFO */}
+                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                              This section analyzes your savings, spending
+                              habits, and financial buffer to estimate stability
+                              and risk levels.
+                            </p>
+
+                            {/* CTA */}
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  if (Number(income) <= 0) {
+                                    toast.error(
+                                      "Enter your monthly income amount first",
+                                    );
+                                  } else {
+                                    setShowUpload(true);
+                                  }
+                                }}
+                                className="text-xs px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
+                              >
+                                Upload Data
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  if (Number(income) <= 0) {
+                                    toast.error(
+                                      "Enter your monthly income amount first",
+                                    );
+                                  } else {
+                                    setShowAddModal(true);
+                                  }
+                                }}
+                                className="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition"
+                              >
+                                Add Transactions
+                              </button>
+                            </div>
+
+                            {/* TIP */}
+                            <p className="text-[10px] text-gray-500 text-center">
+                              Tip: At least 1–2 months of activity gives
+                              accurate life insights
+                            </p>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <LifeImpactCard
+                          metrics={{
+                            financialStabilityScore: Math.min(
+                              100,
+                              Math.round(
+                                ((totalIncome - totalSpent) /
+                                  (Number(income) || 1)) *
+                                  100,
+                              ),
+                            ),
+                            survivalMonths:
+                              (totalIncome - totalSpent) /
+                              (totalSpent / 3 || 1),
+                            stressRisk:
+                              (totalIncome - totalSpent) /
+                                (totalSpent / 3 || 1) <
+                              2
+                                ? "high"
+                                : (totalIncome - totalSpent) /
+                                      (totalSpent / 3 || 1) <
+                                    5
+                                  ? "medium"
+                                  : "low",
+                          }}
+                        />
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* ----------------------------------------------------------------------------- */}
+            {/* SIMULATION & SCENARIO ENGINE */}
+            {finance && (
+              <div className="flex flex-wrap justify-between w-full items-start gap-2">
+                {/* 🎮 SIMULATION */}
+                {allTransactions.length > 10 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex-1 w-full"
+                  >
+                    <GlassCard gradient>
+                      <div className="space-y-4">
+                        {/* HEADER */}
+                        <p className="text-sm font-medium text-white">
+                          🎮 Simulate Savings Impact
+                        </p>
+
+                        <p className="text-[11px] text-gray-500 leading-relaxed">
+                          Simulate how reducing your spending affects your
+                          savings, goals, and next month's financial health.
+                        </p>
+
+                        {/* INPUT */}
+                        <div className="relative flex w-full justify-start items-center">
+                          <label
+                            htmlFor="simulate_val"
+                            className="text-xs text-gray-400 mb-1 block"
+                          >
+                            Monthly savings target
+                          </label>
+                          <div className="flex w-full justify-center items-center gap-2">
+                            <span className="text-gray-500 text-sm">
+                              {currency_str}
+                            </span>
+                            <input
+                              type="number"
+                              placeholder="5000"
+                              id="simulate_val"
+                              onChange={(e) =>
+                                setSimulateValue(Number(e.target.value))
+                              }
+                              className="w-full p-3 rounded-lg bg-black/40 border border-white/10 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* BUTTON */}
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          whileHover={{ scale: 1.02 }}
+                          onClick={simulate}
+                          className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:opacity-90 transition px-4 py-2 rounded-lg text-sm font-medium"
+                        >
+                          Run Simulation
+                        </motion.button>
+
+                        {/* RESULT */}
+                        {simulatedExpense !== null && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-3 rounded-lg bg-green-500/10 border border-green-500/20"
+                          >
+                            <p className="text-xs text-gray-400">
+                              Estimated Savings
+                            </p>
+
+                            <p className="text-sm font-semibold text-green-400">
+                              {currency_str}
+                              {simulateValue} next month
+                            </p>
+
+                            <p className="text-[10px] text-gray-500 mt-1">
+                              Small changes compound over time 📈
+                            </p>
+
+                            <p className="text-[10px] text-gray-500 mt-2 leading-relaxed">
+                              This assumes you consistently save {currency_str}
+                              {simulateValue} by cutting expenses. Over time,
+                              this improves your savings rate and helps you
+                              reach goals faster.
+                            </p>
+                          </motion.div>
+                        )}
+                      </div>
+                    </GlassCard>
+                  </motion.div>
+                )}
+
+                {/* 🔄 SCENARIO ENGINE */}
+                {allTransactions.length > 10 && (
+                  <ScenarioEngine
+                    finance={finance}
+                    currency_str={currency_str}
+                  />
+                )}
+              </div>
+            )}
+            {/* ------------------------------------------------------------------------------ */}
+            {/* STATEMENTS & GOALS */}
+            <div className="flex flex-col-reverse justify-between items-start gap-2">
+              {loading ? (
+                <StatementsGoalsLoader />
+              ) : (
+                <>
+                  <div className="flex-1 w-full">
+                    <GlassCard>
+                      <StatementsCard
+                        statements={statements}
+                        income={income}
+                        selectedStatementId={selectedStatementId}
+                        setSelectedStatementId={setSelectedStatementId}
+                        setShowUpload={setShowUpload}
+                      />
+                    </GlassCard>
+                  </div>
+                  {/* 🎯 GOALS */}
+                  {finance && allTransactions.length > 15 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.05 }}
+                      className="flex-1 w-full"
+                    >
+                      <GoalsSection
+                        goals={finance.goals || []}
+                        currency_str={currency_str}
+                        onAddGoal={async (goal: Goal) => {
+                          const res = await fetch("/api/goals", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(goal),
+                          });
+
+                          const data = await res.json();
+
+                          if (res.ok) {
+                            updateFinanceLocal({ goals: data.goals });
+                            toast.success("Goal added 🚀");
+                          } else {
+                            toast.error("Failed to add goal!");
+                          }
+                        }}
+                      />
+                    </motion.div>
+                  )}
+                </>
+              )}
+            </div>
 
             {/* TRANSACTIONS */}
-            <GlassCard>
-              <p className="text-sm text-gray-400 mb-3">
-                Transactions {selectedStatementId && "(Selected Statement)"}
-              </p>
-
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="text-xs bg-green-500/20 px-3 py-1 rounded"
-              >
-                + Add Manual
-              </button>
-
-              {selectedTransactions.length > 0 ? (
-                <TransactionTable
-                  transactions={selectedTransactions}
-                  GlassCard={GlassCard}
-                />
-              ) : (
-                <p className="text-xs text-gray-500">
-                  Select a statement to view transactions
+            {loading ? (
+              <TransactionsCardLoader />
+            ) : (
+              <GlassCard>
+                <p className="text-sm font-medium text-white mb-3">
+                  📄 Statement Transactions{" "}
+                  {selectedStatementId && "(Selected)"}
                 </p>
-              )}
-            </GlassCard>
+
+                {selectedTransactions.length > 0 ? (
+                  <TransactionTable
+                    transactions={selectedTransactions}
+                    GlassCard={GlassCard}
+                    currency_str={currency_str}
+                  />
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    Select a statement to view transactions
+                  </p>
+                )}
+
+                {/* ========================= */}
+                {/* ✍️ MANUAL TRANSACTIONS */}
+                {/* ========================= */}
+                <div>
+                  <p className="text-sm font-medium text-white mb-2 mt-10">
+                    ✍️ Manual Transactions
+                  </p>
+
+                  <button
+                    onClick={() => {
+                      if (Number(income) <= 0) {
+                        toast.error("Enter your monthly income amount first");
+                      } else {
+                        setShowAddModal(true);
+                      }
+                    }}
+                    className="text-xs text-gray-400 bg-green-600/20 px-3 py-1 rounded mb-5"
+                  >
+                    + Add Manual
+                  </button>
+
+                  {manualTransactions.length > 0 ? (
+                    <TransactionTable
+                      transactions={manualTransactions}
+                      GlassCard={GlassCard}
+                    />
+                  ) : (
+                    <p className="text-xs text-gray-600">
+                      No manual transactions added yet
+                    </p>
+                  )}
+                </div>
+              </GlassCard>
+            )}
           </div>
 
           {/* RIGHT: AI SUMMARY */}
-          <div className="space-y-4">
+          <div className={`space-y-4`}>
             {/* 🧠 AI ANALYSIS */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <GlassCard>
-                <p className="text-sm text-gray-400 mb-3">
-                  🧠 AI Analysis (All Statements)
-                </p>
-
-                {allTransactions.length === 0 ? (
-                  <p className="text-xs text-gray-500">
-                    Upload statements to see analysis
-                  </p>
-                ) : (
-                  <div className="text-sm space-y-2">
-                    {/* 💸 TOTALS */}
-                    <div className="flex justify-between">
-                      <p>💸 Spent</p>
-                      <span>₹{totalSpent}</span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <p>💰 Income</p>
-                      <span>₹{totalIncome}</span>
-                    </div>
-
-                    {latestAnalysis ? (
-                      <motion.div
-                        key={latestAnalysis.createdAt}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="mt-3 space-y-3 text-sm"
-                      >
-                        {/* 🎯 SCORE */}
-                        <div className="flex justify-between items-center">
-                          <p className="text-gray-400 text-xs">
-                            Financial Score
-                          </p>
-
-                          <motion.span
-                            initial={{ scale: 0.8 }}
-                            animate={{ scale: 1 }}
-                            className={`font-semibold ${scoreColor}`}
-                          >
-                            {latestAnalysis?.score ?? 0}/100
-                          </motion.span>
-                        </div>
-
-                        {/* 🧠 PERSONALITY */}
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="text-xs text-blue-400"
-                        >
-                          🧠 {latestAnalysis?.personality}
-                        </motion.div>
-
-                        {/* 💡 INSIGHTS */}
-                        <div className="space-y-1">
-                          {latestAnalysis?.insights
-                            ?.slice(0, 2)
-                            .map((ins: any, i: number) => (
-                              <motion.p
-                                key={i}
-                                initial={{ x: -10, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: i * 0.1 }}
-                                className="text-xs text-gray-300"
-                              >
-                                • {ins.text}
-                              </motion.p>
-                            ))}
-                        </div>
-
-                        {/* ⚡ FIX */}
-                        {latestAnalysis.fixes?.[0] && (
-                          <motion.div
-                            initial={{ scale: 0.95 }}
-                            animate={{ scale: 1 }}
-                            className="bg-blue-500/10 border border-blue-500/20 p-2 rounded text-xs"
-                          >
-                            👉 {latestAnalysis.fixes[0].action}
-                          </motion.div>
-                        )}
-
-                        {/* 📊 IMPACT */}
-                        {latestAnalysis.impact && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-[11px] text-green-400"
-                          >
-                            💰 Save ₹{latestAnalysis.impact.savingsPotential}{" "}
-                            possible
-                          </motion.div>
-                        )}
-                      </motion.div>
-                    ) : (
-                      <p className="text-xs text-gray-500">
-                        AI analysis will appear after processing
-                      </p>
-                    )}
-                    <button onClick={downloadResult}>download</button>
-                  </div>
-                )}
-              </GlassCard>
-            </motion.div>
-
-            {/* 🔮 PREDICTION CARD */}
-            {finance && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <GlassCard>
-                  <p className="text-sm text-gray-400 mb-2">
-                    🔮 Next Month Prediction
-                  </p>
-
-                  <motion.h2
-                    key={
-                      simulatedExpense ?? finance.prediction?.nextMonthExpense
-                    }
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    className="text-2xl font-bold"
-                  >
-                    ₹
-                    {simulatedExpense ??
-                      finance.prediction?.nextMonthExpense ??
-                      0}
-                  </motion.h2>
-
-                  <p className="text-xs text-gray-400 mt-1">
-                    {finance.prediction?.reason ||
-                      "Based on your recent spending habits"}
-                  </p>
-                </GlassCard>
-
-                {/* 📊 CHART */}
-                <p className="text-gray-400 text-sm mb-2">
-                  Your spending behavior this month
-                </p>
-                <SpendingChart breakdown={finance.breakdown} />
-              </motion.div>
+            {loading ? (
+              <AIAnalysisLoader />
+            ) : (
+              <AIAnalysis
+                transactionsLength={allTransactions.length}
+                income={income}
+                totalIncome={totalIncome}
+                totalSpent={totalSpent}
+                latestAnalysis={latestAnalysis}
+                downloadResult={downloadResult}
+                setShowAddModal={setShowAddModal}
+                setShowUpload={setShowUpload}
+                currency_str={currency_str}
+              />
             )}
 
-            {/* 🎮 SIMULATION */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <GlassCard>
-                <p className="text-sm text-gray-400 mb-2">
-                  🎮 Simulate Improvement
-                </p>
-
-                <input
-                  type="number"
-                  placeholder="Reduce by ₹5000"
-                  onChange={(e) => setSimulateValue(Number(e.target.value))}
-                  className="w-full p-2 rounded-lg bg-black/40 border border-white/10 text-sm"
-                />
-
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={simulate}
-                  className="mt-3 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm"
-                >
-                  Simulate
-                </motion.button>
-
-                {simulatedExpense !== null && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-green-400 text-xs mt-2"
+            {/* 🔮 PREDICTION CARD */}
+            {loading ? (
+              <PredictionSectionLoader />
+            ) : (
+              <>
+                {finance && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex flex-col justify-center items-start gap-2 w-full"
                   >
-                    You can save ₹{simulateValue} next month 🎉
-                  </motion.p>
+                    {/* 📊 CHART */}
+                    <div className="lg:mt-4 flex-1 w-full">
+                      <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <SpendingChart
+                          transactionsLength={allTransactions.length}
+                          breakdown={finance.breakdown}
+                          currency_str={currency_str}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex-1 w-full">
+                      {allTransactions.length < 15 ? (
+                        <GlassCard gradient>
+                          <div className="space-y-4">
+                            {/* HEADER */}
+                            <div className="flex justify-between items-center">
+                              <p className="text-sm font-medium text-white">
+                                🔮 Next Month Prediction
+                              </p>
+
+                              <span className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-300">
+                                Locked
+                              </span>
+                            </div>
+
+                            {/* LOCKED CARD */}
+                            <div className="p-5 rounded-xl bg-linear-to-br from-blue-500/10 to-purple-500/10 border border-white/10 space-y-4">
+                              {/* ICON + TEXT */}
+                              <div className="flex items-center gap-3">
+                                <div className="text-2xl">🔒</div>
+                                <div>
+                                  <p className="text-sm font-medium text-white">
+                                    Prediction Unavailable
+                                  </p>
+                                  <p className="text-xs text-gray-400">
+                                    Not enough data to forecast future spending
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* PROGRESS */}
+                              <div>
+                                <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                                  <span>Data Progress</span>
+                                  <span>{allTransactions.length}/15</span>
+                                </div>
+
+                                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all"
+                                    style={{
+                                      width: `${Math.min(
+                                        (allTransactions.length / 15) * 100,
+                                        100,
+                                      )}%`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* INFO */}
+                              <p className="text-[11px] text-gray-400 leading-relaxed">
+                                AI predictions require consistent spending
+                                history to detect trends and patterns.
+                              </p>
+
+                              {/* CTA */}
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    if (Number(income) <= 0) {
+                                      toast.error(
+                                        "Enter your monthly income amount first",
+                                      );
+                                    } else {
+                                      setShowUpload(true);
+                                    }
+                                  }}
+                                  className="text-xs px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
+                                >
+                                  Upload Statement
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    if (Number(income) <= 0) {
+                                      toast.error(
+                                        "Enter your monthly income amount first",
+                                      );
+                                    } else {
+                                      setShowAddModal(true);
+                                    }
+                                  }}
+                                  className="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition"
+                                >
+                                  Add Data
+                                </button>
+                              </div>
+
+                              {/* TIP */}
+                              <p className="text-[10px] text-gray-500">
+                                Tip: 2–3 weeks of transactions improves
+                                prediction accuracy
+                              </p>
+                            </div>
+                          </div>
+                        </GlassCard>
+                      ) : (
+                        <GlassCard>
+                          <div className="space-y-4">
+                            {/* HEADER */}
+                            <div className="flex justify-between items-center">
+                              <p className="text-sm font-medium text-white">
+                                🔮 Next Month Prediction
+                              </p>
+
+                              <span className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-300">
+                                AI Forecast
+                              </span>
+                            </div>
+
+                            {/* VALUE */}
+                            <div className="p-4 rounded-xl bg-linear-to-br from-blue-500/10 to-purple-500/10 border border-white/10">
+                              <motion.h2
+                                key={
+                                  simulatedExpense ??
+                                  finance.prediction?.nextMonthExpense
+                                }
+                                initial={{ scale: 0.9 }}
+                                animate={{ scale: 1 }}
+                                className="text-lg font-semibold"
+                              >
+                                {currency_str}
+                                {simulatedExpense ??
+                                  finance.prediction?.nextMonthExpense ??
+                                  0}
+                              </motion.h2>
+
+                              <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                                {finance.prediction?.reason ||
+                                  "Based on your recent spending patterns"}
+                              </p>
+                            </div>
+
+                            {/* MINI INSIGHT */}
+                            <div className="flex justify-between text-xs text-gray-400">
+                              <span>Trend</span>
+                              <span className="text-green-400">Stable</span>
+                            </div>
+                          </div>
+                        </GlassCard>
+                      )}
+                    </div>
+                  </motion.div>
                 )}
-              </GlassCard>
-            </motion.div>
+              </>
+            )}
           </div>
         </div>
 
@@ -614,20 +986,22 @@ export default function Analyze() {
 
 /* COMPONENTS */
 
-function GlassCard({
+export function GlassCard({
   children,
   gradient,
+  className,
 }: {
   children: React.ReactNode;
   gradient?: boolean;
+  className?: string;
 }) {
   return (
     <div
       className={`p-5 rounded-2xl border border-white/10 backdrop-blur-xl ${
         gradient
-          ? "bg-linear-to-br from-green-500/10 to-blue-500/10"
-          : "bg-white/5"
-      }`}
+          ? "bg-linear-to-br from-blue-500/10 to-purple-500/10"
+          : "bg-white/5 backdrop-blur"
+      }${className}`}
     >
       {children}
     </div>
@@ -639,22 +1013,376 @@ function Card({
   value,
   red,
   green,
+  className,
 }: {
   title: string;
   value: string;
   red?: boolean;
   green?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+    <div
+      className={`p-5 rounded-xl bg-white/5 border border-white/10 ${className}`}
+    >
       <p className="text-xs text-gray-400">{title}</p>
       <p
         className={`text-lg font-semibold ${
           red ? "text-red-400" : green ? "text-green-400" : ""
         }`}
       >
-        {value}
+        {value[0] + `${Number(value.slice(1)).toFixed(2)}`}
       </p>
+    </div>
+  );
+}
+
+/* --------------- LOADERS ------------------ */
+
+const GamificationLoader = () => {
+  return (
+    <div className="p-5 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl animate-pulse space-y-5">
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div className="h-4 w-32 bg-white/10 rounded" />
+        <div className="h-5 w-10 bg-white/10 rounded-lg" />
+      </div>
+
+      {/* XP BAR */}
+      <div className="space-y-3">
+        <div className="flex justify-between">
+          <div className="h-3 w-10 bg-white/10 rounded" />
+          <div className="h-3 w-20 bg-white/10 rounded" />
+        </div>
+
+        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-full w-2/3 bg-white/20 rounded-full" />
+        </div>
+      </div>
+
+      {/* STREAK */}
+      <div className="flex justify-between items-center">
+        <div className="h-3 w-16 bg-white/10 rounded" />
+        <div className="h-4 w-12 bg-white/10 rounded" />
+      </div>
+
+      {/* ACHIEVEMENTS */}
+      <div className="space-y-3">
+        <div className="h-3 w-24 bg-white/10 rounded" />
+
+        <div className="flex flex-wrap gap-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-5 w-20 bg-white/10 rounded-full" />
+          ))}
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div className="pt-3 border-t border-white/10">
+        <div className="h-3 w-full bg-white/10 rounded" />
+      </div>
+    </div>
+  );
+};
+
+const LifeImpactCardLoader = () => {
+  return (
+    <div className="w-full p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl animate-pulse space-y-4">
+      {/* HEADER */}
+      <div className="space-y-2">
+        <div className="h-4 w-32 bg-white/10 rounded" />
+        <div className="h-3 w-48 bg-white/10 rounded" />
+      </div>
+
+      {/* STABILITY */}
+      <div className="space-y-3">
+        <div className="flex justify-between">
+          <div className="h-3 w-28 bg-white/10 rounded" />
+          <div className="h-3 w-10 bg-white/10 rounded" />
+        </div>
+
+        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-full w-2/3 bg-white/20 rounded-full" />
+        </div>
+      </div>
+
+      {/* GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        {/* Survival */}
+        <div className="p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
+          <div className="h-3 w-20 bg-white/10 rounded" />
+          <div className="h-5 w-12 bg-white/10 rounded" />
+          <div className="h-3 w-28 bg-white/10 rounded" />
+        </div>
+
+        {/* Stress */}
+        <div className="p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
+          <div className="h-3 w-20 bg-white/10 rounded" />
+          <div className="h-5 w-14 bg-white/10 rounded" />
+          <div className="h-3 w-28 bg-white/10 rounded" />
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+        <div className="h-3 w-full bg-white/10 rounded" />
+      </div>
+    </div>
+  );
+};
+
+function TransactionsCardLoader() {
+  return (
+    <div className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-5 animate-pulse">
+      {/* HEADER */}
+      <div className="space-y-2">
+        <div className="h-4 w-48 bg-white/10 rounded" />
+        <div className="h-3 w-32 bg-white/10 rounded" />
+      </div>
+
+      {/* TABLE SKELETON */}
+      <div className="space-y-3">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/10"
+          >
+            <div className="space-y-2">
+              <div className="h-3 w-32 bg-white/10 rounded" />
+              <div className="h-2 w-20 bg-white/10 rounded" />
+            </div>
+
+            <div className="h-3 w-16 bg-white/10 rounded" />
+          </div>
+        ))}
+      </div>
+
+      {/* MANUAL SECTION HEADER */}
+      <div className="space-y-2 pt-2">
+        <div className="h-4 w-40 bg-white/10 rounded" />
+        <div className="h-6 w-28 bg-white/10 rounded-lg" />
+      </div>
+
+      {/* MANUAL TABLE */}
+      <div className="space-y-3">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/10"
+          >
+            <div className="space-y-2">
+              <div className="h-3 w-28 bg-white/10 rounded" />
+              <div className="h-2 w-16 bg-white/10 rounded" />
+            </div>
+
+            <div className="h-3 w-14 bg-white/10 rounded" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatementsGoalsLoader() {
+  return (
+    <div className="flex flex-col md:flex-row gap-4 w-full animate-pulse">
+      {/* 📄 STATEMENTS LOADER */}
+      <div className="flex-1 w-full">
+        <div className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-5">
+          {/* HEADER */}
+          <div className="flex justify-between items-center">
+            <div className="h-4 w-32 bg-white/10 rounded" />
+            <div className="h-6 w-20 bg-white/10 rounded-lg" />
+          </div>
+
+          {/* LIST */}
+          <div className="space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="h-8 w-full bg-white/5 border border-white/10 rounded-lg"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 🎯 GOALS LOADER */}
+      <div className="flex-1 w-full">
+        <div className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-5">
+          {/* HEADER */}
+          <div className="flex justify-between items-center">
+            <div className="h-4 w-28 bg-white/10 rounded" />
+            <div className="h-6 w-20 bg-white/10 rounded-lg" />
+          </div>
+
+          {/* GOAL ITEMS */}
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-3"
+              >
+                {/* TITLE + STATUS */}
+                <div className="flex justify-between items-center">
+                  <div className="h-3 w-32 bg-white/10 rounded" />
+                  <div className="h-4 w-16 bg-white/10 rounded-full" />
+                </div>
+
+                {/* AMOUNT */}
+                <div className="h-2 w-40 bg-white/10 rounded" />
+
+                {/* PROGRESS BAR */}
+                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full w-2/3 bg-white/10 rounded-full" />
+                </div>
+
+                {/* PERCENT */}
+                <div className="h-2 w-10 ml-auto bg-white/10 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+function AIAnalysisLoader() {
+  return (
+    <div className="animate-pulse">
+      <div className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-5">
+        {/* HEADER */}
+        <div className="flex justify-between items-center">
+          <div className="h-4 w-44 bg-white/10 rounded" />
+          <div className="h-5 w-20 bg-white/10 rounded-full" />
+        </div>
+
+        {/* SUMMARY */}
+        <div className="flex flex-wrap gap-4">
+          {[...Array(2)].map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 p-4 rounded-xl bg-white/5 border border-white/10 space-y-3"
+            >
+              <div className="h-3 w-24 bg-white/10 rounded" />
+              <div className="h-5 w-32 bg-white/10 rounded" />
+            </div>
+          ))}
+
+          {/* DESKTOP IMPACT BLOCK */}
+          <div className="hidden md:block flex-1 p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+            <div className="h-3 w-36 bg-white/10 rounded" />
+            <div className="h-5 w-28 bg-white/10 rounded" />
+            <div className="h-2 w-24 bg-white/10 rounded" />
+          </div>
+        </div>
+
+        {/* SCORE HERO */}
+        <div className="p-5 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+          <div className="space-y-2">
+            <div className="h-3 w-28 bg-white/10 rounded" />
+            <div className="h-3 w-20 bg-white/10 rounded" />
+          </div>
+          <div className="w-14 h-14 rounded-full bg-white/10" />
+        </div>
+
+        {/* INSIGHTS + ACTION */}
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* INSIGHTS */}
+          <div className="flex-1 space-y-3">
+            <div className="h-3 w-24 bg-white/10 rounded" />
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="p-3 rounded-lg bg-white/5 border border-white/10 space-y-2"
+              >
+                <div className="h-2 w-full bg-white/10 rounded" />
+                <div className="h-2 w-4/5 bg-white/10 rounded" />
+              </div>
+            ))}
+          </div>
+
+          {/* ACTION PLAN */}
+          <div className="flex-1 space-y-3">
+            <div className="h-3 w-24 bg-white/10 rounded" />
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2"
+              >
+                <div className="w-4 h-4 rounded-full bg-white/10" />
+                <div className="h-2 w-full bg-white/10 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* MOBILE IMPACT */}
+        <div className="block md:hidden p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+          <div className="h-3 w-36 bg-white/10 rounded" />
+          <div className="h-5 w-28 bg-white/10 rounded" />
+          <div className="h-2 w-24 bg-white/10 rounded" />
+        </div>
+
+        {/* BUTTON */}
+        <div className="h-9 w-full bg-white/10 rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
+function PredictionSectionLoader() {
+  return (
+    <div className="flex flex-col gap-4 w-full animate-pulse">
+      {/* 📊 CHART LOADER */}
+      <div className="w-full">
+        <div className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-5">
+          {/* HEADER */}
+          <div className="space-y-2">
+            <div className="h-4 w-40 bg-white/10 rounded" />
+            <div className="h-3 w-28 bg-white/10 rounded" />
+          </div>
+
+          {/* CHART AREA */}
+          <div className="w-full h-52 flex items-center justify-center rounded-xl bg-white/5 border border-white/10">
+            <div className="space-y-3 flex flex-col items-center">
+              <div className="w-20 h-20 rounded-full bg-white/10" />
+              <div className="h-2 w-24 bg-white/10 rounded" />
+            </div>
+          </div>
+
+          {/* LEGEND */}
+          <div className="space-y-2">
+            <div className="h-2 w-32 bg-white/10 rounded" />
+            <div className="h-2 w-28 bg-white/10 rounded" />
+            <div className="h-2 w-24 bg-white/10 rounded" />
+          </div>
+        </div>
+      </div>
+
+      {/* 🔮 PREDICTION CARD LOADER */}
+      <div className="w-full">
+        <div className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-5">
+          {/* HEADER */}
+          <div className="flex justify-between items-center">
+            <div className="h-4 w-44 bg-white/10 rounded" />
+            <div className="h-5 w-20 bg-white/10 rounded-full" />
+          </div>
+
+          {/* VALUE BLOCK */}
+          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+            <div className="h-6 w-32 bg-white/10 rounded" />
+            <div className="h-3 w-full bg-white/10 rounded" />
+            <div className="h-3 w-4/5 bg-white/10 rounded" />
+          </div>
+
+          {/* MINI INSIGHT */}
+          <div className="flex justify-between">
+            <div className="h-3 w-16 bg-white/10 rounded" />
+            <div className="h-3 w-16 bg-white/10 rounded" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

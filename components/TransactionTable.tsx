@@ -1,12 +1,20 @@
+import { currencyMap } from "@/lib/currencyMap";
 import React from "react";
+
+let country = "India";
 
 export default function TransactionTable({
   transactions,
   GlassCard,
+  currency_str
 }: {
   transactions: any[];
   GlassCard: React.ComponentType<{ children: React.ReactNode }>;
+  currency_str?:string;
 }) {
+
+    currency_str =
+        currency_str ?? "₹"
   return (
     <GlassCard>
       <p className="text-sm text-gray-400 mb-3">All Transactions</p>
@@ -29,7 +37,7 @@ export default function TransactionTable({
                 <td>{t.date}</td>
                 <td>{t.mode}</td>
                 <td>{t.category}</td>
-                <td className={t.type==="Expense"?"text-red-400":"text-green-400"}>₹{t.amount}</td>
+                <td className={t.type==="Expense"?"text-red-400":"text-green-400"}>{currency_str}{t.amount}</td>
                 <td>{t.type}</td>
               </tr>
             ))}

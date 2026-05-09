@@ -5,27 +5,46 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function DemoChat() {
-const fullText =
-  "I noticed a pattern of frequent small orders rather than large planned ones. That usually signals habit-based spending. Let’s fix it with a simple rule: 2 orders per week max + ₹200 limit. Want me to track this for you? 📊";
   const router = useRouter();
+
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  const [mode, setMode] = useState<"personal" | "general">("personal");
   const [typedText, setTypedText] = useState("");
   const [showAI, setShowAI] = useState(false);
   const [thinking, setThinking] = useState(false);
   const [done, setDone] = useState(false);
 
-  // 👇 detect visibility
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
+  // 🔥 Demo content per mode
+  const DEMO = {
+    personal: {
+      user: "Help me with my spending habits",
+      ai: "I noticed frequent small orders instead of planned spending. That usually signals habit-based behavior. Try this: 2 orders per week + ₹200 cap. Want me to track it for you?",
+    },
+    general: {
+      user: "How can I start saving money?",
+      ai: "Start small—try saving ₹100 whenever you receive money. Keep it in a separate account so you don’t spend it easily. Do you already have a bank account or UPI app?",
+    },
+  };
 
+  const fullText = DEMO[mode].ai;
+
+  // 🔁 Reset animation when mode changes
   useEffect(() => {
-    if (!isInView) return; // 🚫 don't start until visible
+    if (!isInView) return;
+
+    setTypedText("");
+    setShowAI(false);
+    setThinking(false);
+    setDone(false);
 
     let i = 0;
     let interval: NodeJS.Timeout;
 
     const thinkingTimeout = setTimeout(() => {
       setThinking(true);
-    }, 800);
+    }, 600);
 
     const responseTimeout = setTimeout(() => {
       setThinking(false);
@@ -33,20 +52,30 @@ const fullText =
 
       interval = setInterval(() => {
         setTypedText(fullText.slice(0, i));
-
         i++;
+
         if (i > fullText.length) {
           clearInterval(interval);
           setDone(true);
         }
-      }, 25);
-    }, 1800);
+      }, 20);
+    }, 1400);
 
     return () => {
       clearTimeout(thinkingTimeout);
       clearTimeout(responseTimeout);
       if (interval) clearInterval(interval);
     };
+  }, [isInView, mode]);
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    const interval = setInterval(() => {
+      setMode((prev) => (prev === "personal" ? "general" : "personal"));
+    }, 6000); // switch every 6s
+
+    return () => clearInterval(interval);
   }, [isInView]);
 
   return (
@@ -57,8 +86,34 @@ const fullText =
       transition={{ duration: 0.6 }}
       className="mt-5 w-85 md:w-140 bg-gray-900 p-5 rounded-2xl border border-gray-800 text-left shadow-lg shadow-blue-500/10 relative group"
     >
-      {/* LABEL */}
-      <p className="text-xs text-gray-500 mb-3">Live AI preview</p>
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-3">
+        <p className="text-xs text-gray-500">Live AI preview</p>
+
+        {/* 🔥 MODE TOGGLE */}
+        <div className="flex bg-white/5 rounded-lg p-1 text-[10px]">
+          <button
+            onClick={() => setMode("personal")}
+            className={`px-2 py-1 rounded ${
+              mode === "personal"
+                ? "bg-blue-500/20 text-blue-300"
+                : "text-gray-400"
+            }`}
+          >
+            Personal
+          </button>
+          <button
+            onClick={() => setMode("general")}
+            className={`px-2 py-1 rounded ${
+              mode === "general"
+                ? "bg-purple-500/20 text-purple-300"
+                : "text-gray-400"
+            }`}
+          >
+            General
+          </button>
+        </div>
+      </div>
 
       {/* USER */}
       <div className="mb-4">
@@ -68,7 +123,7 @@ const fullText =
           </span>
           User:
         </p>
-        <p>Help me with my spending habits</p>
+        <p>{DEMO[mode].user}</p>
       </div>
 
       {/* THINKING */}
@@ -122,7 +177,8 @@ const fullText =
           </p>
         </motion.div>
       )}
-      {/* Overlay */}
+
+      {/* CTA */}
       <div className="absolute bottom-0 left-0 right-0 rounded-b-2xl flex flex-col items-end justify-end px-4 py-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition duration-300">
         <ChevronRight
           onClick={() => router.push("/chat")}

@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { sectionColors } from "@/lib/sectionColors"; 
+import { sectionColors } from "@/lib/sectionColors";
 import { Brain, Lightbulb, Target, TrendingDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -138,236 +138,281 @@ export default function HowItWorks() {
     impact:
       "If this continues, you’ll struggle to build savings despite earning enough. Over time, this leads to financial stress and dependence on credit.",
   };
- const steps = [
-   {
-     title: "Input your financial data",
-     desc: "Upload your bank statement or use demo data. MoneyMind instantly processes your transactions and prepares them for analysis.",
+  const steps = [
+    {
+      title: "Input your financial data",
+      desc: "Upload your bank statement or use demo data. MoneyMind instantly processes your transactions and prepares them for analysis.",
 
-     ui: (
-       <div className="flex flex-col items-center justify-center h-32 text-gray-400 animate-pulse">
-         📂 Uploading & processing transactions...
-       </div>
-     ),
-   },
+      ui: (
+        <div className="flex flex-col items-center justify-center h-32 text-gray-400 animate-pulse">
+          📂 Uploading & processing transactions...
+        </div>
+      ),
+    },
 
-   {
-     title: "AI analyzes your behavior",
-     desc: "Detects spending patterns, emotional triggers, and hidden money leaks automatically using intelligent analysis.",
+    {
+      title: "AI analyzes your behavior",
+      desc: "Detects spending patterns, emotional triggers, and hidden money leaks automatically using intelligent analysis.",
 
-     ui: (
-       <div className="flex flex-col items-center justify-center h-32 text-gray-400 animate-pulse">
-         🧠 Analyzing patterns & behavior...
-       </div>
-     ),
-   },
+      ui: (
+        <div className="flex flex-col items-center justify-center h-32 text-gray-400 animate-pulse">
+          🧠 Analyzing patterns & behavior...
+        </div>
+      ),
+    },
 
-   {
-     title: "Get insights + financial score",
-     desc: "Understand your financial personality, weak points, and get actionable steps to improve your habits.",
+    {
+      title: "Get insights + financial score",
+      desc: "Understand your financial personality, weak points, and get actionable steps to improve your habits.",
 
-     ui: (
-       <div className="scale-[0.7] origin-top h-88 w-70 md:w-140 relative group">
-         <div className="p-3 space-y-0.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-lg">
-           <ScoreCardPreview result={dummyResult} score={72} />
+      ui: (
+        <div className="scale-[0.7] origin-top h-88 w-70 md:w-140 relative group">
+          <div className="p-3 space-y-0.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-lg">
+            <ScoreCardPreview result={dummyResult} score={72} />
 
-           <div className="space-y-2 text-sm text-gray-300">
-             <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: 0.3 }}
-               className={`p-2 rounded-xl border ${sectionColors.insight.border} ${sectionColors.insight.bg}`}
-             >
-               <div className="flex items-center gap-2 mb-2">
-                 <Lightbulb
-                   className={`w-4 h-4 ${sectionColors.insight.title}`}
-                 />
-                 <p className={`text-xs ${sectionColors.insight.title}`}>
-                   INSIGHT
-                 </p>
-               </div>
+            <div className="space-y-2 text-sm text-gray-300">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className={`p-2 rounded-xl border ${sectionColors.insight.border} ${sectionColors.insight.bg}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Lightbulb
+                    className={`w-4 h-4 ${sectionColors.insight.title}`}
+                  />
+                  <p className={`text-xs ${sectionColors.insight.title}`}>
+                    INSIGHT
+                  </p>
+                </div>
 
-               <p className="text-gray-300 leading-relaxed line-clamp-2">
-                 {dummyResult.insight}
-               </p>
-             </motion.div>
+                <p className="text-gray-300 leading-relaxed line-clamp-2">
+                  {dummyResult.insight}
+                </p>
+              </motion.div>
 
-             <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: 0.3 }}
-               className={`p-2 rounded-xl border ${sectionColors.fixes.border} ${sectionColors.fixes.bg}`}
-             >
-               <div className="flex items-center gap-2 mb-2">
-                 <Target className={`w-4 h-4 ${sectionColors.fixes.title}`} />
-                 <p className={`text-xs ${sectionColors.fixes.title}`}>
-                   ACTION PLAN
-                 </p>
-               </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className={`p-2 rounded-xl border ${sectionColors.fixes.border} ${sectionColors.fixes.bg}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className={`w-4 h-4 ${sectionColors.fixes.title}`} />
+                  <p className={`text-xs ${sectionColors.fixes.title}`}>
+                    ACTION PLAN
+                  </p>
+                </div>
 
-               <ul className="list-disc ml-5 space-y-2 text-gray-300">
-                 {dummyResult.fix
-                   .split(/\.\s+/)
-                   .map((item) => item.trim())
-                   .filter(Boolean)
-                   .map((item, i) => (
-                     <li className="line-clamp-2 list-disc" key={i}>
-                       {item}
-                     </li>
-                   ))}
-               </ul>
-             </motion.div>
-             <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: 0.3 }}
-               className={`p-2 rounded-lg border ${sectionColors.impact.border} ${sectionColors.impact.bg}`}
-             >
-               <div className="flex items-center gap-2 mb-1">
-                 <TrendingDown
-                   className={`w-4 h-4 ${sectionColors.impact.title}`}
-                 />
-                 <p className={`text-xs ${sectionColors.impact.title}`}>
-                   IMPACT
-                 </p>
-               </div>
+                <ul className="list-disc ml-5 space-y-2 text-gray-300">
+                  {dummyResult.fix
+                    .split(/\.\s+/)
+                    .map((item) => item.trim())
+                    .filter(Boolean)
+                    .map((item, i) => (
+                      <li className="line-clamp-2 list-disc" key={i}>
+                        {item}
+                      </li>
+                    ))}
+                </ul>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className={`p-2 rounded-lg border ${sectionColors.impact.border} ${sectionColors.impact.bg}`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingDown
+                    className={`w-4 h-4 ${sectionColors.impact.title}`}
+                  />
+                  <p className={`text-xs ${sectionColors.impact.title}`}>
+                    IMPACT
+                  </p>
+                </div>
 
-               <p className="text-gray-300 line-clamp-2">
-                 {dummyResult.impact}
-               </p>
-             </motion.div>
-           </div>
+                <p className="text-gray-300 line-clamp-2">
+                  {dummyResult.impact}
+                </p>
+              </motion.div>
+            </div>
 
-           {/* Overlay */}
-           <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center bg-black/40 backdrop-blur-md opacity-0 group-hover:opacity-100 transition duration-300">
-             <p className="text-lg text-gray-300 mb-3">
-               Unlock your full financial analysis
-             </p>
-             <motion.button
-               whileHover={{ scale: 1.08 }}
-               whileTap={{ scale: 0.95 }}
-               onClick={() => router.push("/analyze")}
-               className="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-xl text-xl font-medium shadow-lg shadow-blue-500/20"
-             >
-               Analyze My Behavior 🚀
-             </motion.button>
-           </div>
-         </div>
-       </div>
-     ),
-   },
+            {/* Overlay */}
+            <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center bg-black/40 backdrop-blur-md opacity-0 group-hover:opacity-100 transition duration-300">
+              <p className="text-lg text-gray-300 mb-3">
+                Unlock your full financial analysis
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push("/analyze")}
+                className="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-xl text-xl font-medium shadow-lg shadow-blue-500/20"
+              >
+                Analyze My Behavior 🚀
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      ),
+    },
 
-   {
-     title: "Ask AI for smart decisions",
-     desc: "Ask questions like ‘Can I afford a car?’ and get clear YES/NO answers with reasoning and suggestions.",
+    {
+      title: "Ask AI for smart decisions",
+      desc: "Ask questions like ‘Can I afford a car?’ and get clear YES/NO answers with reasoning and suggestions.",
 
-     ui: (
-       <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-         <div className="text-right mb-3">
-           <div className="inline-block bg-blue-600 px-4 py-2 rounded-xl text-sm">
-             Can I afford a ₹8L car?
-           </div>
-         </div>
+      ui: (
+        <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+          <div className="text-right mb-3">
+            <div className="inline-block bg-blue-600 px-4 py-2 rounded-xl text-sm">
+              Can I afford a ₹8L car?
+            </div>
+          </div>
 
-         <div className="bg-gray-800 p-4 rounded-xl text-sm text-gray-300">
-           ❌ Not recommended right now.
-           <br />
-           Your savings are low and expenses are high.
-           <br />
-           💡 Reduce spending by ₹5k/month.
-         </div>
-       </div>
-     ),
-   },
+          <div className="bg-gray-800 p-4 rounded-xl text-sm text-gray-300">
+            ❌ Not recommended right now.
+            <br />
+            Your savings are low and expenses are high.
+            <br />
+            💡 Reduce spending by ₹5k/month.
+          </div>
+        </div>
+      ),
+    },
 
-   {
-     title: "Predict your future",
-     desc: "MoneyMind forecasts your upcoming expenses based on your habits so you can plan ahead.",
+    {
+      title: "Predict your future",
+      desc: "MoneyMind forecasts your upcoming expenses based on your habits so you can plan ahead.",
 
-     ui: (
-       <div className="p-5 m-8 rounded-2xl bg-white/5 border border-white/10 text-center text-gray-300">
-         🔮 Predicted next month expense: ₹42,000
-       </div>
-     ),
-   },
+      ui: (
+        <div className="p-5 m-8 rounded-2xl bg-white/5 border border-white/10 text-center text-gray-300">
+          🔮 Predicted next month expense: ₹42,000
+        </div>
+      ),
+    },
 
-   {
-     title: "Autonomous monitoring & alerts",
-     desc: "The system tracks your progress and automatically notifies you when you improve or overspend.",
+    {
+      title: "Autonomous monitoring & alerts",
+      desc: "The system tracks your progress and automatically notifies you when you improve or overspend.",
 
-     ui: (
-       <div
-         className="relative max-w-md mx-auto p-4 m-7 rounded-xl bg-linear-to-r from-green-500/10 to-emerald-500/10 border border-green-400/20 backdrop-blur-xl shadow-lg shadow-green-500/10 flex items-start gap-3"
-       >
-         {/* ICON */}
-         <div className="mt-1">
-           <div
-             className="w-8 h-8 flex items-center justify-center rounded-full bg-green-500/20 text-green-400"
-           >
-             🎉
-           </div>
-         </div>
+      ui: (
+        <div className="relative max-w-md mx-auto p-4 m-7 rounded-xl bg-linear-to-r from-green-500/10 to-emerald-500/10 border border-green-400/20 backdrop-blur-xl shadow-lg shadow-green-500/10 flex items-start gap-3">
+          {/* ICON */}
+          <div className="mt-1">
+            <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-500/20 text-green-400">
+              🎉
+            </div>
+          </div>
 
-         {/* CONTENT */}
-         <div className="flex-1 text-left">
-           <p className="text-sm font-semibold text-green-300">Goal Achieved</p>
-           <p className="text-sm text-gray-300 mt-1">
-             You can now afford your goal. Great financial discipline!
-           </p>
-         </div>
+          {/* CONTENT */}
+          <div className="flex-1 text-left">
+            <p className="text-sm font-semibold text-green-300">
+              Goal Achieved
+            </p>
+            <p className="text-sm text-gray-300 mt-1">
+              You can now afford your goal. Great financial discipline!
+            </p>
+          </div>
 
-         {/* CLOSE BUTTON */}
-         <button className="text-gray-400 hover:text-white transition">
-           ✕
-         </button>
-       </div>
-     ),
-   },
- ];
- const chatSteps = [
-   {
-     title: "Ask anything about your money",
-     desc: "Chat naturally with AI about spending, savings, or big financial decisions.",
+          {/* CLOSE BUTTON */}
+          <button className="text-gray-400 hover:text-white transition">
+            ✕
+          </button>
+        </div>
+      ),
+    },
+  ];
+  const chatSteps = [
+    // ---------------- PERSONAL MODE ----------------
+    {
+      title: "Ask anything about your money",
+      desc: "Chat naturally with AI about spending, savings, or big financial decisions.",
 
-     ui: (
-       <div className="p-6 m-7 space-y-3 rounded-2xl bg-white/5 border border-white/10">
-         <div className="text-right">
-           <div className="bg-blue-600 px-4 py-2 rounded-xl text-sm inline-block">
-             Can I afford a trip to Goa?
-           </div>
-         </div>
-       </div>
-     ),
-   },
+      ui: (
+        <div className="p-6 m-7 space-y-3 rounded-2xl bg-white/5 border border-white/10">
+          <div className="text-right">
+            <div className="bg-blue-600 px-4 py-2 rounded-xl text-sm inline-block">
+              Can I afford a trip to Goa?
+            </div>
+          </div>
+        </div>
+      ),
+    },
 
-   {
-     title: "AI understands your full context",
-     desc: "It uses your past spending, habits, and financial data to generate accurate responses.",
+    {
+      title: "AI understands your full context",
+      desc: "It uses your past spending, habits, and financial data to generate accurate responses.",
 
-     ui: (
-       <div className="p-14 flex justify-center text-gray-400 animate-pulse">
-         🧠 Understanding your finances...
-       </div>
-     ),
-   },
+      ui: (
+        <div className="p-14 flex justify-center text-gray-400 animate-pulse">
+          🧠 Understanding your finances...
+        </div>
+      ),
+    },
 
-   {
-     title: "Get clear decisions + advice",
-     desc: "Receive direct answers, reasoning, and actionable steps — not generic tips.",
+    {
+      title: "Get clear decisions + advice",
+      desc: "Receive direct answers, reasoning, and actionable steps — not generic tips.",
 
-     ui: (
-       <div className="p-6 m-7 space-y-3 rounded-2xl bg-white/5 border border-white/10">
-         <div className="bg-gray-800 px-4 py-2 rounded-xl text-sm text-left">
-           ✅ Yes, you can afford it.
-           <br />
-           💡 Keep your monthly expenses under ₹30k.
-         </div>
-       </div>
-     ),
-   },
- ];
+      ui: (
+        <div className="p-6 m-7 space-y-3 rounded-2xl bg-white/5 border border-white/10">
+          <div className="bg-gray-800 px-4 py-2 rounded-xl text-sm text-left">
+            ✅ Yes, you can afford it.
+            <br />
+            💡 Keep your monthly expenses under ₹30k.
+          </div>
+        </div>
+      ),
+    },
+
+    // ---------------- GENERAL MODE ----------------
+    {
+      title: "Or just ask basic money questions",
+      desc: "No data needed — perfect for learning finance from scratch.",
+
+      ui: (
+        <div className="p-6 m-7 space-y-3 rounded-2xl bg-white/5 border border-white/10">
+          <div className="text-right">
+            <div className="bg-purple-500 px-4 py-2 rounded-xl text-sm inline-block">
+              What is a savings account?
+            </div>
+          </div>
+        </div>
+      ),
+    },
+
+    {
+      title: "AI explains in simple language",
+      desc: "No jargon, no confusion — just clear and easy explanations.",
+
+      ui: (
+        <div className="p-6 m-7 space-y-3 rounded-2xl bg-white/5 border border-white/10">
+          <div className="bg-gray-800 px-4 py-2 rounded-xl text-sm text-left">
+            A savings account is a safe place to keep your money in a bank.
+            <br />
+            You can also earn a small interest on it.
+          </div>
+        </div>
+      ),
+    },
+
+    {
+      title: "Build financial habits step-by-step",
+      desc: "Start small and grow — the AI guides you at your level.",
+
+      ui: (
+        <div className="p-6 m-7 space-y-3 rounded-2xl bg-white/5 border border-white/10">
+          <div className="bg-gray-800 px-4 py-2 rounded-xl text-sm text-left">
+            💡 Try saving ₹100 every week.
+            <br />
+            Do you already use UPI or a bank account?
+          </div>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>

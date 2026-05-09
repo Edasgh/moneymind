@@ -5,6 +5,7 @@ import { FormEvent, useState } from "react";
 export default function AddTransactionModal({
   onClose,
   onAdd,
+  currency_str,
 }: any) {
   const [form, setForm] = useState({
     date: "",
@@ -25,6 +26,8 @@ export default function AddTransactionModal({
     onAdd(form);
     onClose();
   };
+
+  currency_str = currency_str ?? "₹";
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-3">
@@ -59,10 +62,10 @@ export default function AddTransactionModal({
               className="w-full mt-1 p-3 rounded-xl bg-black/40 border border-white/10"
             >
               <option value="">Select</option>
-              <option>UPI</option>
-              <option>Card</option>
-              <option>Cash</option>
-              <option>Net Banking</option>
+              <option value="UPI">UPI</option>
+              <option value="Card">Card</option>
+              <option value="Cash">Cash</option>
+              <option value="Net Banking">Net Banking</option>
             </select>
           </div>
 
@@ -82,7 +85,7 @@ export default function AddTransactionModal({
             <label className="text-xs text-gray-400">Amount</label>
             <input
               type="number"
-              placeholder="₹500"
+              placeholder={`${currency_str}500`}
               value={form.amount}
               onChange={(e) => handleChange("amount", e.target.value)}
               className="w-full mt-1 p-3 rounded-xl bg-black/40 border border-white/10"
