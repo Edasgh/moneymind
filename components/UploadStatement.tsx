@@ -1,4 +1,5 @@
 "use client";
+import { useFinance } from "@/hooks/useFinance";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
@@ -16,6 +17,7 @@ export default function UploadStatement({
 }) {
   const router = useRouter();
 
+  const { updateStatementsLocal } = useFinance();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<
@@ -40,11 +42,19 @@ export default function UploadStatement({
 
           toast.success("Analysis complete 🚀");
 
+          // update local instantly (fast UI)
+          updateStatementsLocal({
+            _id: data._id,
+            fileName: data.fileName,
+            status: data.status,
+            extractedTransactions: data.extractedTransactions,
+            summary: data.summary,
+          });
+
+          // update page-level state if needed
           if (setTransactions && setSummary) {
             setTransactions(data.extractedTransactions);
             setSummary(data.summary);
-          } else {
-            router.push("/analyze");
           }
 
           setLoading(false);
@@ -91,7 +101,7 @@ export default function UploadStatement({
       setStep("queued");
 
       try {
-        const res = await fetch("/api/internal/trigger-workers");
+        const res = await fetch("/api/internal/trigger_workers");
 
         if (!res.ok) {
           throw new Error("Worker trigger failed");
@@ -116,6 +126,8 @@ export default function UploadStatement({
     } finally {
       setLoading(false);
       setStep("idle");
+      setShowUploadModal(false);
+      router.refresh();
     }
   };
 
