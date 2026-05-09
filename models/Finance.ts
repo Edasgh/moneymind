@@ -1,31 +1,28 @@
 import mongoose from "mongoose";
 
-const transactionSchema = new mongoose.Schema(
-  {
-    amount: { type: Number, required: true },
+const transactionSchema = new mongoose.Schema({
+  amount: { type: Number, required: true },
 
-    category: {
-      type: String,
-      enum: ["Essential", "Lifestyle", "Impulsive", "Income"],
-      default: "Lifestyle",
-    },
-
-    type: {
-      type: String,
-      enum: ["Income", "Expense"],
-      required: true,
-    },
-
-    mode: {
-      type: String,
-      enum: ["UPI", "Card", "Cash", "Bank"],
-      default: "UPI",
-    },
-
-    date: { type: Date, required: true },
+  category: {
+    type: String,
+    enum: ["Essential", "Lifestyle", "Impulsive", "Income"],
+    default: "Lifestyle",
   },
-  { _id: false },
-);
+
+  type: {
+    type: String,
+    enum: ["Income", "Expense"],
+    required: true,
+  },
+
+  mode: {
+    type: String,
+    enum: ["UPI", "Card", "Cash", "Bank"],
+    default: "UPI",
+  },
+
+  date: { type: Date, required: true },
+});
 
 // =========================
 // 🎯 GOALS
@@ -110,7 +107,10 @@ const FinanceSchema = new mongoose.Schema(
         insights: [
           {
             text: String,
-            type: String,
+            type: {
+              type: String,
+              enum: ["risk", "habit", "opportunity"],
+            },
           },
         ],
 
@@ -165,6 +165,47 @@ const FinanceSchema = new mongoose.Schema(
       impulsive: { type: Number, default: 0 },
       updatedAt: { type: Date },
     },
+
+    lifeMetrics: {
+      financialStabilityScore: { type: Number, min: 0, max: 100 },
+
+      survivalMonths: Number, // months user can survive without income
+
+      stressRisk: {
+        type: String,
+        enum: ["low", "medium", "high"],
+      },
+
+      savingsRate: Number,
+
+      emergencyFundStatus: {
+        type: String,
+        enum: ["poor", "average", "good"],
+      },
+
+      updatedAt: Date,
+    },
+
+    gamification: {
+      level: { type: Number, default: 1 },
+
+      xp: { type: Number, default: 0 },
+
+      streaks: {
+        underBudgetDays: { type: Number, default: 0 },
+      },
+
+      achievements: [
+        {
+          title: String,
+          unlockedAt: Date,
+        },
+      ],
+
+      lastUpdated: Date,
+    },
+
+    latest_no_of_transactions: Number,
   },
   { timestamps: true },
 );
