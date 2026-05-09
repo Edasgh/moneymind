@@ -13,10 +13,8 @@ export async function GET(req: any) {
 
   await connectDB();
 
-  const userId = req.headers.get("user-id"); // or auth
-
   const notifications = await Notification.find({
-    userId,
+    userId:session.user.id,
     read: false,
   })
     .sort({ createdAt: 1 }) // oldest first (important for queue)

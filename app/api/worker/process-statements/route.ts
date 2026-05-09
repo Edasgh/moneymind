@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import Statement from "@/models/Statement";
 import { connectDB } from "@/lib/db";
 import { parseStatementWithAI } from "@/lib/ai/parseStatement";
-import { generateSummary, normalizeTransactions } from "@/lib/statementParser";
+import { generateSummary, normalizeTransactions } from "@/lib/statementParseHelpers";
 import { createNotification } from "@/lib/createNotification";
 
 // =========================

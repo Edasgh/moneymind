@@ -8,13 +8,41 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import NotFound from "../not-found";
 
+const generalQuestions = [
+  {
+    title: "🏦 Basics",
+    items: [
+      "What is a bank account and why do I need one?",
+      "How does UPI work?",
+      "Difference between debit card and credit card?",
+    ],
+  },
+  {
+    title: "📈 Growth",
+    items: [
+      "What is SIP and how do I start?",
+      "How can I start saving with low income?",
+      "How to build an emergency fund?",
+    ],
+  },
+  {
+    title: "🛡️ Safety",
+    items: [
+      "How to avoid fraud in digital payments?",
+      "What is insurance and do I need it?",
+      "What is a credit score?",
+    ],
+  },
+];
+
 export default function ChatPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const [mode, setMode] = useState<"personal" | "general">("general");
   const [messages, setMessages] = useState<{ type: string; text: string }[]>(
     [],
   );
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -23,16 +51,26 @@ export default function ChatPage() {
     if (!input) return;
 
     try {
-      const limitedHistory = messages?.slice(-6); // last 6 messages only
+      const limitedHistory = messages?.slice(-6);
 
       const userMsg = { type: "user", text: input };
+      const isBuyingTopic = /(buy|purchase|afford)/i.test(userMsg.text);
+      const isDecisionIntent = /(can i|should i|is it ok to)/i.test(
+        userMsg.text,
+      );
+
+      const isAffordQuery = isBuyingTopic && isDecisionIntent;
       setMessages((prev) => [...prev, userMsg]);
       setInput("");
       setLoading(true);
 
       const res = await fetch("/api/chat", {
         method: "POST",
-        body: JSON.stringify({ message: input, history: limitedHistory }),
+        body: JSON.stringify({
+          message: input,
+          history: limitedHistory,
+          mode: isAffordQuery ? "personal" : "general",
+        }),
       });
 
       const data = await res.json();
@@ -68,11 +106,19 @@ export default function ChatPage() {
     setLoading(false);
   };
 
-    if(!session){
-      return(
-        <NotFound/>
-      )
+  async function copyResponse (text:string){
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied to clipboard!")
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+      toast.error("Failed to copy")
     }
+  }
+
+  if (!session) {
+    return <NotFound />;
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-black text-white px-1.5 py-3 md:p-6">
@@ -124,36 +170,101 @@ export default function ChatPage() {
 
       <div className="max-w-3xl mx-auto mt-10 text-center">
         <h1 className="text-3xl md:text-4xl font-bold">
-          Talk to Your <span className="text-blue-500">AI Money Coach</span>
+          {mode === "personal" ? (
+            <>
+              Talk to Your <span className="text-blue-500">AI Money Coach</span>
+            </>
+          ) : (
+            <>
+              Learn <span className="text-purple-400">Finance Concepts</span>
+            </>
+          )}
         </h1>
 
         <p className="text-gray-400 mt-3 text-sm md:text-base">
-          Ask anything about your spending, saving, or habits — get real,
-          practical advice instantly.
+          {mode === "personal"
+            ? "Ask anything about your spending, saving, or habits — get real, practical advice instantly."
+            : "Understand finance terms, investing, savings strategies, and money concepts in simple language."}
         </p>
+      </div>
+
+      <div className="max-w-3xl mx-auto mt-6 flex justify-center">
+        <div className="flex bg-gray-800 p-1 rounded-xl border border-gray-700">
+          <button
+            onClick={() => setMode("personal")}
+            className={`px-4 py-2 text-xs md:text-sm rounded-lg transition ${
+              mode === "personal"
+                ? "bg-blue-600 text-white"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            🧠 My Finances
+          </button>
+
+          <button
+            onClick={() => setMode("general")}
+            className={`px-4 py-2 text-xs md:text-sm rounded-lg transition ${
+              mode === "general"
+                ? "bg-purple-500 text-white"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            📘 General Advice
+          </button>
+        </div>
       </div>
 
       {/* Chat */}
       <div className="space-y-4 max-w-3xl mx-auto mt-10">
         {messages.length === 0 && (
           <div className="text-center mt-16 text-gray-400">
-            <p className="text-lg">💬 Tell me your money habit...</p>
+            <p className="text-lg">
+              {mode === "personal"
+                ? "💬 Tell me your money habit..."
+                : "📘 Ask any finance question..."}
+            </p>
 
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              {[
-                "Can I afford a car?",
-                "How can I save more?",
-                "What am I doing wrong?",
-              ].map((q, i) => (
-                <button
-                  key={i}
-                  onClick={() => setInput(q)}
-                  className="bg-gray-800 px-4 py-2 rounded-xl text-sm hover:bg-gray-700"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
+            {mode === "personal" && (
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {[
+                  "Can I afford a car?",
+                  "How can I save more?",
+                  "What am I doing wrong?",
+                ].map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setInput(q)}
+                    className="bg-gray-800 px-4 py-2 rounded-xl text-sm hover:bg-gray-700 transition"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {mode === "general" && (
+              <>
+                {generalQuestions.map((section, idx) => (
+                  <div key={idx} className="text-left">
+                    <p className="text-xs text-gray-500 mb-2">
+                      {section.title}
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {section.items.map((q, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setInput(q)}
+                          className="bg-gray-800 px-3 py-1.5 rounded-lg text-xs hover:bg-gray-700"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         )}
         {messages.map((msg, i) => (
@@ -176,7 +287,7 @@ export default function ChatPage() {
               <div
                 className={`px-4 py-3 rounded-2xl max-w-[75%] text-sm shadow ${
                   msg.type === "user"
-                    ? "bg-blue-600 text-white shadow-blue-500/20 rounded-br-sm"
+                    ? `text-white shadow-blue-500/20 rounded-br-sm ${mode === "general" ? "bg-linear-to-r from-blue-500 to-purple-500" : "bg-blue-600"}`
                     : "bg-linear-to-br from-gray-800 to-gray-900 text-gray-200 rounded-bl-sm"
                 }`}
               >
@@ -184,7 +295,9 @@ export default function ChatPage() {
               </div>
 
               {msg.type === "user" && (
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs">
+                <div
+                  className={`w-8 h-8 rounded-full ${mode === "general" ? "bg-purple-500" : "bg-blue-600"} flex items-center justify-center text-xs`}
+                >
                   🧑
                 </div>
               )}
@@ -205,6 +318,12 @@ export default function ChatPage() {
                 >
                   Ask Follow-up
                 </button>
+                <button
+                  onClick={async()=>await copyResponse(msg.text)}
+                  className="text-xs bg-gray-800 px-2 py-1 rounded"
+                >
+                 Copy
+                </button>
               </div>
             )}
           </motion.div>
@@ -220,17 +339,21 @@ export default function ChatPage() {
       {/* Input */}
       <div className="max-w-3xl mx-auto mt-6 flex gap-3 bg-gray-900 p-2 rounded-2xl border border-gray-700">
         <input
-          value={input}
+          value={input ?? ""}
           ref={inputRef}
           onChange={(e) => setInput(e.target.value)}
           className="flex-1 bg-transparent outline-none px-3 py-2 text-sm"
-          placeholder="Tell me your money problem..."
+          placeholder={
+            mode === "personal"
+              ? "Ask about your spending, savings..."
+              : "Ask any finance concept (SIP, EMI, etc)..."
+          }
         />
 
         <button
           onClick={sendMessage}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 transition px-5 py-2 rounded-xl text-sm font-medium"
+          className={`${mode === "general" ? "bg-purple-500 hover:bg-purple-600" : "bg-blue-600 hover:bg-blue-700"} transition px-5 py-2 rounded-xl text-sm font-medium`}
         >
           Send
         </button>

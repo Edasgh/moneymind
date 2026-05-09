@@ -21,7 +21,18 @@ export const GET = async (request: Request) => {
     //get all statements
     const statements = await Statement.find({ userId: session.user.id });
     // monthly income, total spent, total saved
-    const financeDoc = await Finance.findOne({ userId: session.user.id });
+    let financeDoc = await Finance.findOne({ userId: session.user.id });
+
+    if (!financeDoc) {
+      financeDoc = await Finance.create({
+        userId: session.user.id,
+        monthlyIncome: 0,
+        transactions: [],
+        statements: [],
+        aiHistory: [],
+        goals: [],
+      });
+    }
 
     return NextResponse.json(
       { message: "User data got successfully!", statements, financeDoc },
@@ -46,15 +57,13 @@ export const PATCH = async (request: Request) => {
 
     await connectDB();
 
-    const updatedFinanceDoc = await Finance.findByIdAndUpdate(
-      financeId,
-      { monthlyIncome : Number(monthlyIncome) },
-      { returnDocument: "after" },
-    );
+    await Finance.findByIdAndUpdate(financeId, {
+      monthlyIncome,
+    });
+
     return NextResponse.json(
       {
         message: "Finance doc got updated successfully!",
-        financeDoc: updatedFinanceDoc,
       },
       { status: 201 },
     );
@@ -77,7 +86,7 @@ export const PUT = async (request: Request) => {
 
     await connectDB();
 
-    const { name, country, monthlyIncome } = await request.json();
+    const { name, country } = await request.json();
 
     const userId = session.user.id;
 
@@ -93,24 +102,10 @@ export const PUT = async (request: Request) => {
       { new: true },
     );
 
-    // =========================
-    // 💰 UPDATE FINANCE
-    // =========================
-    let updatedFinance = null;
-
-    if (monthlyIncome !== undefined) {
-      updatedFinance = await Finance.findOneAndUpdate(
-        { userId },
-        { monthlyIncome: Number(monthlyIncome) },
-        { new: true },
-      );
-    }
-
     return NextResponse.json(
       {
         message: "Profile updated successfully!",
         user: updatedUser,
-        finance: updatedFinance,
       },
       { status: 200 },
     );

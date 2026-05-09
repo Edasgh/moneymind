@@ -1,6 +1,9 @@
+import { currencyMap } from "./currencyMap";
+
 export function simulateSavingsImpact(
   transactions: any[],
   reductionAmount: number,
+  country?:string,
 ) {
   const currentSpent = transactions
     .filter((t) => t.type === "Expense")
@@ -10,9 +13,12 @@ export function simulateSavingsImpact(
 
   const savingsGain = reductionAmount;
 
+    const currency_str =
+        currencyMap[country as keyof typeof currencyMap] || "₹"
+
   return {
     newSpent,
     savingsGain,
-    message: `You can save ₹${savingsGain}/month`,
+    message: `You can save ${currency_str}${savingsGain}/month`,
   };
 }

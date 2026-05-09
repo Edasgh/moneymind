@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { getStatementConfidence } from "@/lib/statementParser";
+import { getStatementConfidence } from "@/lib/statementParseHelpers";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 

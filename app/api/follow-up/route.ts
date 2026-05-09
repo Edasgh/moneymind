@@ -17,92 +17,174 @@ export async function POST(req: Request) {
     return Response.json({ question: "Unauthorized" }, { status: 401 });
   }
 
-  const { history } = await req.json();
+  const { history, mode } = await req.json();
 
-  // =========================
-  // 📊 FETCH DATA
-  // =========================
-  const finance = await Finance.findOne({
-    userId: session.user.id,
-  });
+  const chatHistory = history
+    ?.map((m: any) => `${m.type === "user" ? "User" : "AI"}: ${m.text}`)
+    .join("\n");
 
-  if (!finance) {
-    return Response.json({
-      question: "I need your financial data first. Upload a statement.",
-    });
-  }
-
-  let allTransactions: any[] = [];
-
-  if (finance.statements?.length) {
-    const statements = await Statement.find({
-      _id: { $in: finance.statements },
-      status: "parsed",
-    });
-
-    statements.forEach((s) => {
-      allTransactions.push(...(s.extractedTransactions || []));
-    });
-  }
-
-  const safeTransactions = allTransactions.slice(-100);
+  const isBeginner =
+    (history?.length || 0) < 3 ||
+    !history?.some((m: any) =>
+      /(invest|sip|mutual fund|credit|loan|interest|budget)/i.test(m.text),
+    );
 
   // =========================
   // 🧠 PROMPT
   // =========================
-  const systemPrompt = `
-You are MoneyMind, a sharp financial behavior coach.
+  let systemPrompt = "";
 
-Your job:
-Ask a follow-up question that reveals WHY the user behaves this way.
+  const PERSONAL_PROMPT = `
+    You are MoneyMind, a sharp financial behavior coach.
 
-Focus on:
-- Spending habits
-- Emotional triggers (stress, boredom, impulse)
-- Patterns in transactions
+    Your job:
+    Ask a follow-up question that reveals WHY the user behaves this way.
 
-STRICT RULES:
-- Only ONE sentence
-- No explanations
-- No markdown
-- No emojis
-- Make it feel personal and insightful
-- If no data, ask about habits instead
+    Focus on:
+    - Spending habits
+    - Emotional triggers (stress, boredom, impulse)
+    - Patterns in transactions
 
-Examples:
-- What usually triggers your late-night spending?
-- Do you notice yourself ordering more when stressed or bored?
-`;
-  const context =
-    safeTransactions.length > 0
-      ? `Transactions:\n${JSON.stringify(safeTransactions)}`
-      : "No transaction data";
+    STRICT RULES:
+    - Only ONE sentence
+    - No explanations
+    - No markdown
+    - No emojis
+    - Make it feel personal and insightful
+    - If no data, ask about habits instead
 
-  const chatHistory = history
-    ?.slice(-8)
-    .map((m: any) => `${m.type === "user" ? "User" : "AI"}: ${m.text}`)
-    .join("\n");
+    Examples:
+    - What usually triggers your late-night spending?
+    - Do you notice yourself ordering more when stressed or bored?
+    `;
 
+  const GENERAL_BEGINNER_PROMPT = `
+  You are MoneyMind, a beginner-friendly financial guide.
+
+  Your job:
+  Ask a VERY simple follow-up question to understand the user's money habits.
+
+  Focus on:
+  - Daily money usage
+  - Saving habits
+  - Basic banking awareness
+
+  STRICT RULES:
+  - Only ONE sentence
+  - Use very simple words (no jargon)
+  - Make it easy to answer (yes/no or short)
+  - No markdown
+  - No emojis
+
+  STYLE:
+  - Talk like a helpful friend
+  - Assume user is new to finance
+
+  Examples:
+  - Do you usually save some money every month?
+  - Do you keep your money in a bank account or cash?
+  - Do you track your daily expenses?
+  `;
+
+  const GENERAL_ADVANCED_PROMPT = `
+  You are MoneyMind, a financial literacy and inclusion guide.
+
+  Your job:
+  Ask a thoughtful follow-up question to understand the user's financial thinking.
+
+  Focus on:
+  - Saving and budgeting
+  - Financial habits
+  - Risk awareness
+  - Basic investing
+
+  STRICT RULES:
+  - Only ONE sentence
+  - Keep language simple but slightly insightful
+  - No markdown
+  - No emojis
+
+  Examples:
+  - What percentage of your income do you try to save?
+  - Do you have a plan for handling unexpected expenses?
+  - How do you decide between spending and saving?
+  `;
+
+  if (mode === "personal") {
+    systemPrompt = PERSONAL_PROMPT;
+  } else {
+    systemPrompt = isBeginner
+      ? GENERAL_BEGINNER_PROMPT
+      : GENERAL_ADVANCED_PROMPT;
+  }
+
+  //=========================
+  // MODEL
+  //==========================
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash-lite",
     systemInstruction: systemPrompt,
   });
 
-  const result = await model.generateContent(`
-${context}
+  let context = ``;
 
-${chatHistory}
-
-Ask a follow-up question.
-`);
-
-  const text = result.response.text().trim();
-
-  if (!text) {
-    return Response.json({
-      question: "What usually triggers your unnecessary spending?",
+  if (mode === "personal") {
+    // =========================
+    // 📊 FETCH DATA
+    // =========================
+    const finance = await Finance.findOne({
+      userId: session.user.id,
     });
+
+    if (!finance) {
+      return Response.json({
+        question: "I need your financial data first. Upload a statement.",
+      });
+    }
+
+    let allTransactions: any[] = [];
+
+    if (finance.statements?.length) {
+      const statements = await Statement.find({
+        _id: { $in: finance.statements },
+        status: "parsed",
+      });
+
+      statements.forEach((s) => {
+        allTransactions.push(...(s.extractedTransactions || []));
+      });
+    }
+
+    const safeTransactions = allTransactions.slice(-100);
+
+    context =
+      safeTransactions.length > 0
+        ? `Transactions:\n${JSON.stringify(safeTransactions)}`
+        : "No transaction data";
+  } else {
+    context = "No transaction data";
   }
 
-  return Response.json({ question: text });
+  try {
+    const result = await model.generateContent(`
+  ${context}
+
+  ${chatHistory}
+
+  Ask a follow-up question.
+  `);
+
+    const text = result.response.text().trim();
+
+    if (!text) {
+      return Response.json({
+        question: "What usually triggers your unnecessary spending?",
+      });
+    }
+
+    return Response.json({ question: text });
+  } catch (error) {
+    console.log("Error while ai asking follow up : ",error);
+    return Response.json({ question: "Something went wrong! Please try again later." });
+  }
 }

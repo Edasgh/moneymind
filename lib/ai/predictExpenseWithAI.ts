@@ -199,6 +199,7 @@ Rules:
 - Stay close to basePrediction
 - Consider behavior patterns
 - Keep realistic
+- Adjust prediction considering inflation trends and spending behavior typical in ${context.userCountry}
 
 Return STRICT JSON:
 {
@@ -215,7 +216,7 @@ Return STRICT JSON:
 
   const safeContext = {
     basePrediction: finalPrediction,
-    monthlyIncome: context.monthlyIncome,
+    ...context.summary,
     essentialSpending: essential,
     lifestyleSpending: lifestyle,
     impulsiveSpending: impulsive,

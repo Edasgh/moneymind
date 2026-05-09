@@ -36,6 +36,7 @@ export const authOptions: NextAuthOptions = {
           id: user._id.toString(), // 🔥 IMPORTANT
           name: user.name,
           email: user.email,
+          country:user.country
         };
       },
     }),
@@ -59,12 +60,14 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id;
 
+        await connectDB();
         // fetch latest user data
         const user = await User.findById(token.id);
 
         if (user) {
           session.user.name = user.name;
           session.user.email = user.email;
+          session.user.country = user.country;
         }
       }
 
