@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     await finance.save();
 
     // trigger analysis of finance
-    // await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
+    await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
 
     return NextResponse.json({ success: true, goals:finance.goals },{status:201});
   } catch (error) {
@@ -87,7 +87,7 @@ export async function PUT(req: Request) {
     );
 
     // trigger analysis of finance
-    // await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
+    await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
@@ -126,7 +126,7 @@ export async function DELETE(req: Request) {
     await finance.save();
 
     // trigger analysis of finance
-    // await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
+    await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
 
     return NextResponse.json({ success: true },{status:200});
    } catch (error) {

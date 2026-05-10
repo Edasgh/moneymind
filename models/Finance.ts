@@ -84,6 +84,8 @@ const FinanceSchema = new mongoose.Schema(
       index: true, // ⚡ important
     },
 
+    isDemo: { type: Boolean, default: false },
+
     monthlyIncome: { type: Number, default: 0 },
 
     transactions: [transactionSchema],

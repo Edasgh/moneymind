@@ -187,7 +187,7 @@ export async function sendEmail(
     lifestyle: number;
     impulsive: number;
     suggestion: string;
-    country:string;
+    country: string;
   },
 ) {
   try {
@@ -528,6 +528,11 @@ export async function GET(req: Request) {
         continue;
       }
 
+      if (finance.isDemo) {
+        console.log("⏭ Skipping AI - Demo data detected");
+        continue;
+      }
+
       //  AI CALL (ONLY IF NEEDED)
       finance.latest_no_of_transactions = allTransactions.length;
 
@@ -828,7 +833,9 @@ export async function GET(req: Request) {
       const lifemetrics_savingsRate =
         income > 0 ? (lifemetrics_savings / income) * 100 : 0;
 
-      const config = countryConfig[country as keyof typeof countryConfig] || countryConfig.India;
+      const config =
+        countryConfig[country as keyof typeof countryConfig] ||
+        countryConfig.India;
 
       // 🔹 stability score (simple model)
       let stability = 50;

@@ -24,6 +24,8 @@ import StatementsCard from "@/components/StatementsCard";
 import GoalsSection from "@/components/GoalsSection";
 import AIAnalysis from "@/components/AIAnalysis";
 import { convertToPdf } from "@/lib/convertToPdf";
+import DemoDataModal from "@/components/DemoDataModal";
+import ExitDemoBanner from "@/components/ExitDemoBanner";
 
 export default function Analyze() {
   const { data: session } = useSession();
@@ -32,6 +34,8 @@ export default function Analyze() {
     statements: fianceStatements,
     updateFinanceLocal,
     loading,
+    setLoading,
+    refresh,
   } = useFinance();
   const latestAnalysis = finance?.aiHistory?.at(-1);
 
@@ -137,6 +141,36 @@ export default function Analyze() {
     toast.success("Future updated based on your decision 🚀");
   };
 
+  const deleteManualTransaction = async (transactionId: string) => {
+    // console.log("Transaction id : ",transactionId)
+    if (finance?.isDemo) {
+      toast.error("In Demo Mode, Manual Transactions can't be deleted!");
+    } else {
+      try {
+        const res = await fetch("/api/transaction", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            transactionId,
+          }),
+        });
+
+        if (res.ok) {
+          toast.success("Transaction deleted Successfully 🚀");
+          setManualTransactions((tx) =>
+            tx.filter((t: any) => t._id !== transactionId),
+          );
+        } else {
+          toast.error("Failed to delete Transaction!");
+        }
+      } catch (error) {
+        toast.error("Failed to delete Transaction!");
+      }
+    }
+  };
+
   const currency_str =
     currencyMap[
       session?.user?.country ?? ("India" as keyof typeof currencyMap)
@@ -156,6 +190,10 @@ export default function Analyze() {
           ? "text-yellow-400"
           : "text-red-400";
   }
+
+  useEffect(() => {
+    refresh();
+  }, []);
 
   if (!session) {
     return <NotFound />;
@@ -231,7 +269,7 @@ export default function Analyze() {
 
               if (res.ok) {
                 updateFinanceLocal({ transactions: data.transactions });
-                // setManualTransactions(data.transactions);
+                setManualTransactions(data.transactions);
                 setShowAddModal(false);
                 toast.success("Transaction added 🚀");
               } else {
@@ -239,6 +277,28 @@ export default function Analyze() {
               }
             }}
           />
+        )}
+
+        {finance?.isDemo && (
+          <div className="space-y-4 mb-6">
+            {/* DEMO BADGE */}
+            <div className="flex items-center justify-between rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+
+                <span className="text-sm font-medium text-blue-200">
+                  Demo Mode Active
+                </span>
+              </div>
+
+              <span className="text-[11px] text-blue-300/80">
+                Using simulated financial data
+              </span>
+            </div>
+
+            {/* EXIT BANNER */}
+            <ExitDemoBanner refresh={refresh} />
+          </div>
         )}
 
         {/* SUMMARY */}
@@ -287,10 +347,8 @@ export default function Analyze() {
           </div>
         )}
 
-        {!loading && !finance && (
-          <button className="text-xs px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 transition">
-            Use Sample Data
-          </button>
+        {!loading && allTransactions.length === 0 && setLoading && (
+          <DemoDataModal refresh={refresh} setFinanceLoading={setLoading} />
         )}
 
         {/* MAIN GRID */}
@@ -572,7 +630,7 @@ export default function Analyze() {
 
             {/* ----------------------------------------------------------------------------- */}
             {/* SIMULATION & SCENARIO ENGINE */}
-            {finance && (
+            {!loading && finance && (
               <div className="flex flex-wrap justify-between w-full items-start gap-2">
                 {/* 🎮 SIMULATION */}
                 {allTransactions.length > 10 && (
@@ -680,11 +738,13 @@ export default function Analyze() {
                   <div className="flex-1 w-full">
                     <GlassCard>
                       <StatementsCard
+                        finance={finance}
                         statements={statements}
                         income={income}
                         selectedStatementId={selectedStatementId}
                         setSelectedStatementId={setSelectedStatementId}
                         setShowUpload={setShowUpload}
+                        refresh={refresh}
                       />
                     </GlassCard>
                   </div>
@@ -697,6 +757,7 @@ export default function Analyze() {
                       className="flex-1 w-full"
                     >
                       <GoalsSection
+                        isDemo={finance.isDemo}
                         goals={finance.goals || []}
                         currency_str={currency_str}
                         onAddGoal={async (goal: Goal) => {
@@ -758,6 +819,10 @@ export default function Analyze() {
                     onClick={() => {
                       if (Number(income) <= 0) {
                         toast.error("Enter your monthly income amount first");
+                      } else if (finance?.isDemo) {
+                        toast.error(
+                          "You're currently using demo data. Delete demo mode to add real transactions.",
+                        );
                       } else {
                         setShowAddModal(true);
                       }
@@ -769,6 +834,9 @@ export default function Analyze() {
 
                   {manualTransactions.length > 0 ? (
                     <TransactionTable
+                      onDelete={deleteManualTransaction}
+                      isDemo={finance?.isDemo}
+                      isManual={true}
                       transactions={manualTransactions}
                       GlassCard={GlassCard}
                     />
@@ -977,7 +1045,7 @@ export default function Analyze() {
         <UploadStatement
           showUploadModal={showUpload}
           setShowUploadModal={setShowUpload}
-          setTransactions={setManualTransactions}
+          setSelectedStatementId={setSelectedStatementId}
         />
       </div>
     </div>

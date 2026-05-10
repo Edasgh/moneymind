@@ -7,17 +7,15 @@ import { toast, ToastContainer } from "react-toastify";
 export default function UploadStatement({
   showUploadModal,
   setShowUploadModal,
-  setTransactions,
-  setSummary,
+  setSelectedStatementId,
 }: {
   showUploadModal: boolean;
   setShowUploadModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setTransactions?: React.Dispatch<any>;
-  setSummary?: React.Dispatch<any>;
+  setSelectedStatementId: React.Dispatch<React.SetStateAction<string | null>>;
 }) {
   const router = useRouter();
 
-  const { updateStatementsLocal } = useFinance();
+  const { updateStatementsLocal, refresh } = useFinance();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<
@@ -52,10 +50,7 @@ export default function UploadStatement({
           });
 
           // update page-level state if needed
-          if (setTransactions && setSummary) {
-            setTransactions(data.extractedTransactions);
-            setSummary(data.summary);
-          }
+          setSelectedStatementId(data._id);
 
           setLoading(false);
           setShowUploadModal(false);
@@ -127,7 +122,7 @@ export default function UploadStatement({
       setLoading(false);
       setStep("idle");
       setShowUploadModal(false);
-      router.refresh();
+      refresh();
     }
   };
 

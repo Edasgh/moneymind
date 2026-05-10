@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/app/analyze/page";
 import { toast } from "react-toastify";
@@ -143,36 +142,31 @@ const AIAnalysis = ({
                     </p>
                   </div>
                   {/* 📊 IMPACT */}
-                  {latestAnalysis && (
-                    <>
-                      {latestAnalysis.impact && (
-                        <div className="hidden md:block relative h-full flex-1 w-full p-4 rounded-xl border border-green-500/20">
-                          <div className="absolute inset-0 bg-linear-to-br from-green-500/10 to-transparent" />
+                  {latestAnalysis?.impact && (
+                    <div className="hidden md:block relative h-full flex-1 w-full p-4 rounded-xl border border-green-500/20">
+                      <div className="absolute inset-0 bg-linear-to-br from-green-500/10 to-transparent" />
 
-                          <div className="relative">
-                            <p className="text-xs text-gray-400">
-                              📈 Potential Monthly Savings
-                            </p>
+                      <div className="relative">
+                        <p className="text-xs text-gray-400">
+                          📈 Potential Monthly Savings
+                        </p>
 
-                            <p className="text-lg font-semibold text-green-400">
-                              {currency_str}
-                              {latestAnalysis.impact.savingsPotential}
-                              /month
-                            </p>
+                        <p className="text-lg font-semibold text-green-400">
+                          {currency_str}
+                          {latestAnalysis.impact.savingsPotential}
+                          /month
+                        </p>
 
-                            <p className="text-[10px] text-gray-500">
-                              ≈ {currency_str}
-                              {latestAnalysis.impact.projectedSavings} in 3
-                              months
-                            </p>
+                        <p className="text-[10px] text-gray-500">
+                          ≈ {currency_str}
+                          {latestAnalysis.impact.projectedSavings} in 3 months
+                        </p>
 
-                            <p className="text-[10px] text-gray-500 mt-1">
-                              Small optimizations → big long-term impact 🚀
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </>
+                        <p className="text-[10px] text-gray-500 mt-1">
+                          Small optimizations → big long-term impact 🚀
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -265,7 +259,7 @@ const AIAnalysis = ({
                 )}
 
                 {/* 📊 IMPACT */}
-                {latestAnalysis.impact && (
+                {latestAnalysis?.impact && (
                   <div className="block md:hidden relative flex-1 p-4 rounded-xl border border-green-500/20 overflow-hidden">
                     <div className="absolute inset-0 bg-linear-to-br from-green-500/10 to-transparent" />
 

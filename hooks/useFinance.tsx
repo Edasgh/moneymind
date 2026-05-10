@@ -1,6 +1,6 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, Dispatch, SetStateAction, useContext, useEffect, useState } from "react";
 
 interface Statement {
   _id: string;
@@ -70,12 +70,14 @@ export interface Finance {
   };
   lifeMetrics?: LifeMetrics;
   gamification?: Gamification;
+  isDemo?:boolean;
 }
 
 interface FinanceContextType {
   statements: Statement[];
   finance: Finance | null;
   loading: boolean;
+  setLoading: Dispatch<SetStateAction<boolean>>;
   error: string | null;
   refresh: () => Promise<void>;
   // partial update (for UI responsiveness)
@@ -165,6 +167,7 @@ export const FinanceProvider = ({
         statements,
         finance,
         loading,
+        setLoading,
         error,
         refresh: fetchFinanceData,
         updateFinanceLocal,

@@ -3,14 +3,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-
+import { Trash2Icon } from "lucide-react";
 
 export default function StatementsCard({
+  finance,
   statements,
   income,
   selectedStatementId,
   setSelectedStatementId,
   setShowUpload,
+  refresh,
 }: any) {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
@@ -37,6 +39,10 @@ export default function StatementsCard({
           onClick={() => {
             if (Number(income) <= 0) {
               toast.error("Enter your monthly income amount first");
+            } else if (finance?.isDemo) {
+              toast.error(
+                "Bank statement uploads are disabled while using sample data.",
+              );
             } else {
               setShowUpload(true);
             }
@@ -69,26 +75,52 @@ export default function StatementsCard({
             {paginatedStatements.map((s: any) => (
               <div
                 key={s._id}
-                onClick={() => {
-                  if (selectedStatementId === s._id) {
-                    setSelectedStatementId(null);
-                  } else {
-                    setSelectedStatementId(s._id);
-                  }
-                }}
-                className={`p-2 rounded cursor-pointer text-xs flex items-center justify-between transition ${
-                  selectedStatementId === s._id
-                    ? "bg-blue-500/20"
-                    : "bg-white/5 hover:bg-white/10"
-                }`}
+                className="flex w-full justify-between items-center gap-5"
               >
-                {/* FILE NAME */}
-                <span className="truncate">📄 {s.fileName}</span>
+                <div
+                  onClick={() => {
+                    if (selectedStatementId === s._id) {
+                      setSelectedStatementId(null);
+                    } else {
+                      setSelectedStatementId(s._id);
+                    }
+                  }}
+                  className={`p-2 flex-10 rounded cursor-pointer text-xs flex items-center justify-between transition ${
+                    selectedStatementId === s._id
+                      ? "bg-blue-500/20"
+                      : "bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  {/* FILE NAME */}
+                  <span className="truncate">📄 {s.fileName}</span>
 
-                {/* OPTIONAL STATUS DOT */}
-                {selectedStatementId === s._id && (
-                  <span className="text-[10px] text-blue-400">Selected</span>
-                )}
+                  {/* OPTIONAL STATUS DOT */}
+                  {selectedStatementId === s._id && (
+                    <span className="text-[10px] text-blue-400">Selected</span>
+                  )}
+                </div>
+                <button
+                  onClick={async () => {
+                    const res = await fetch(`/api/statements/${s._id}`, {
+                      method: "DELETE",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    if (res.ok) {
+                      toast.success("Statement deleted Successfully!");
+                      setTimeout(() => {
+                        refresh();
+                      }, 2500);
+                    } else {
+                      toast.error("Failed to delete Statement!");
+                    }
+                  }}
+                  title="Delete"
+                  className="flex-1 text-red-300 hover:text-red-600 cursor-pointer"
+                >
+                  <Trash2Icon />
+                </button>
               </div>
             ))}
           </motion.div>

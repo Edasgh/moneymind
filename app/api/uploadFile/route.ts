@@ -92,6 +92,11 @@ export const POST = async (request: Request) => {
       await Finance.findByIdAndUpdate(findFinanceSchema._id, {
         $push: { statements: statement._id },
       });
+
+      if (findFinanceSchema.isDemo) {
+        findFinanceSchema.isDemo = false;
+        await findFinanceSchema.save();
+      }
     } else {
       await Finance.create({
         userId: session.user.id,
@@ -100,7 +105,7 @@ export const POST = async (request: Request) => {
     }
 
     await createNotification({
-      userId:session.user.id,
+      userId: session.user.id,
       type: "STATEMENT_UPLOADED",
       title: "Statement Uploaded 📄",
       message: "Your bank statement has been uploaded successfully",

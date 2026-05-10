@@ -37,26 +37,6 @@ const iconMap = {
   ANALYSIS_SKIPPED: "⏭️", // skipped state
 };
 
-const typeStyles = {
-  STATEMENT_UPLOADED: "bg-red-500/15 text-red-300 border border-red-500/30",
-  ANALYSIS_READY:
-    "bg-purple-500/15 text-purple-300 border border-purple-500/30",
-
-  STATEMENT_PROCESSED: "bg-blue-500/15 text-blue-300 border border-blue-500/30",
-
-  TRANSACTION_ADDED: "bg-red-500/15 text-red-300 border border-red-500/30",
-
-  GOAL_UPDATE: "bg-yellow-500/15 text-yellow-300 border border-yellow-500/30",
-
-  LEVEL_UP: "bg-green-500/15 text-green-300 border border-green-500/30",
-
-  ACHIEVEMENT_UNLOCKED:
-    "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
-
-  STREAK_UPDATE: "bg-orange-500/15 text-orange-300 border border-orange-500/30",
-
-  ANALYSIS_SKIPPED: "bg-gray-500/10 text-gray-400 border border-white/10",
-};
 
 export default function NotificationToaster() {
   const { refresh } = useFinance();
@@ -137,9 +117,6 @@ export default function NotificationToaster() {
       `${iconMap[current.type]} ${current.title ?? "Notification"} - ${current.message ?? ""}`,
       {
         autoClose: 2500,
-        className: `text-[10px] px-2 py-1 rounded-md ${
-          typeStyles[current.type]
-        }`,
         onOpen: () => {
           triggerRefresh(current.type);
         },

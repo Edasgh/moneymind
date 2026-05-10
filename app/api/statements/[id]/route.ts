@@ -12,6 +12,9 @@ import { api } from "@/convex/_generated/api";
 //for uploading to convex cloud
 const convexClient = getConvexClient();
 
+const BASE_URL = process.env.BASE_URL;
+const SECRET = process.env.WORKER_SECRET;
+
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -40,12 +43,12 @@ export async function DELETE(
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
     const finance = await Finance.findOne({ userId: session.user.id });
     if (!finance) {
-      return Response.json({ error: "Finance not found" }, { status: 404 });
+      return NextResponse.json({ error: "Finance not found" }, { status: 404 });
     }
     const { id } = await context.params;
     finance.statements = finance.statements.filter(
@@ -54,12 +57,19 @@ export async function DELETE(
     await finance.save();
     const stmt = await Statement.findById(id);
     if (!stmt) {
-      return Response.json({ error: "Statement not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Statement not found" },
+        { status: 404 },
+      );
     }
 
     await convexClient.mutation(api.fileControls.deleteFileById, {
       storageId: stmt.storageId,
     });
+
+    // trigger analysis of finance
+    await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
+
     return NextResponse.json(
       { message: "Statement deleted successfully!" },
       { status: 200 },

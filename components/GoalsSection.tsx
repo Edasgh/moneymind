@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/app/analyze/page";
 import AddGoalModal from "./AddGoalModal";
-import { Goal } from "@/hooks/useFinance";
+import { Finance, Goal } from "@/hooks/useFinance";
+import { Trash2Icon } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function GoalsSection({
+  isDemo,
   goals,
   onAddGoal,
   currency_str,
 }: {
+  isDemo: boolean | undefined;
   goals: Goal[];
   onAddGoal: any;
   currency_str?: string;
@@ -21,6 +25,24 @@ export default function GoalsSection({
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
   const [aiInsights, setAiInsights] = useState<Record<string, string>>({});
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+
+  const ITEMS_PER_PAGE = 4;
+  const totalPages = Math.ceil(goals.length / ITEMS_PER_PAGE);
+
+  const [paginatedGoals, setPaginatedGoals] = useState<Goal[]>([
+    ...goals.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE,
+    ),
+  ]);
+
+  const statusStyles = {
+    achieved: "bg-green-500/20 text-green-400 border-green-500/20",
+    "at-risk": "bg-red-500/20 text-red-400 border-red-500/20",
+    active: "bg-yellow-500/20 text-yellow-300 border-yellow-500/20",
+  };
+
+  currency_str = currency_str ?? "₹";
 
   const handleAskAI = async (goal: Goal) => {
     if (!goal._id) return;
@@ -54,21 +76,28 @@ export default function GoalsSection({
     }
   };
 
-  const ITEMS_PER_PAGE = 4;
-  const totalPages = Math.ceil(goals.length / ITEMS_PER_PAGE);
+  const deleteGoal = async (goalId: string) => {
+    try {
+      const res = await fetch("/api/goals", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          goalId,
+        }),
+      });
 
-  const paginatedGoals = goals.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
-
-  const statusStyles = {
-    achieved: "bg-green-500/20 text-green-400 border-green-500/20",
-    "at-risk": "bg-red-500/20 text-red-400 border-red-500/20",
-    active: "bg-yellow-500/20 text-yellow-300 border-yellow-500/20",
+      if (res.ok) {
+        setPaginatedGoals((prev) => prev.filter((p) => p._id !== goalId));
+        toast.success("Goal Deleted Successfully 🚀");
+      } else {
+        toast.error("Failed to delete goal!");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
-
-  currency_str = currency_str ?? "₹";
 
   useEffect(() => {
     setTimeout(() => {
@@ -89,7 +118,13 @@ export default function GoalsSection({
             </p>
 
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => {
+                if (isDemo) {
+                  toast.error(
+                    "Goals are disabled in demo mode. Remove sample data to create your own goals.",
+                  );
+                } else setShowModal(true);
+              }}
               className="text-xs px-3 py-1 rounded bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition"
             >
               + Add Goal
@@ -137,6 +172,25 @@ export default function GoalsSection({
                             {aiLoadingId === goal._id
                               ? "Thinking..."
                               : "Ask AI"}
+                          </button>
+
+                          {/* X Delete Button */}
+                          <button
+                            title={!isDemo ? "Delete" : "Delete Disabled"}
+                            onClick={() => {
+                              if (!isDemo) {
+                                if (goal._id) {
+                                  deleteGoal(goal._id);
+                                }
+                              } else {
+                                toast.error(
+                                  "In Demo Mode Goals can't be deleted",
+                                );
+                              }
+                            }}
+                            className="text-[10px] rounded text-red-400 transition"
+                          >
+                            <Trash2Icon />
                           </button>
 
                           {/* 💬 TOOLTIP */}
