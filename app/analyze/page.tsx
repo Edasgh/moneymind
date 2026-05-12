@@ -83,7 +83,7 @@ export default function Analyze() {
       ?.extractedTransactions || [];
 
   // =========================
-  // 📊 SUMMARY (BASED ON ALL DATA)
+  //  SUMMARY (BASED ON ALL DATA)
   // =========================
   const totalSpent = allTransactions
     .filter((t) => t.type === "Expense")

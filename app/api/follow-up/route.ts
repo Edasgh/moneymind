@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     );
 
   // =========================
-  // 🧠 PROMPT
+  // PROMPT
   // =========================
   let systemPrompt = "";
 
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
 
   if (mode === "personal") {
     // =========================
-    // 📊 FETCH DATA
+    //  FETCH DATA
     // =========================
     const finance = await Finance.findOne({
       userId: session.user.id,

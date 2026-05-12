@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 // =========================
-// 📊 GROUP BY MONTH
+//  GROUP BY MONTH
 // =========================
 function groupByMonth(transactions: any[]) {
   const map: Record<string, number> = {};
@@ -21,7 +21,7 @@ function groupByMonth(transactions: any[]) {
 }
 
 // =========================
-// 📊 CATEGORY SPLIT
+// CATEGORY WISE SPLIT
 // =========================
 export function categorizeSpending(transactions: any[]) {
   let essential = 0;
@@ -46,7 +46,7 @@ export function categorizeSpending(transactions: any[]) {
 }
 
 // =========================
-// 📊 WEEKEND DETECTION
+//  WEEKEND DETECTION
 // =========================
 function weekendSpendingBoost(transactions: any[]) {
   let weekend = 0;
@@ -70,7 +70,7 @@ function weekendSpendingBoost(transactions: any[]) {
 }
 
 // =========================
-// 📊 RECENT 30-DAY VELOCITY
+//  RECENT 30-DAY VELOCITY
 // =========================
 function last30DaysSpend(transactions: any[]) {
   const now = new Date();
@@ -90,7 +90,7 @@ function last30DaysSpend(transactions: any[]) {
 }
 
 // =========================
-// 📊 TREND MODEL
+//  TREND MODEL
 // =========================
 function trendPrediction(transactions: any[]) {
   const monthly = groupByMonth(transactions);
@@ -108,13 +108,13 @@ function trendPrediction(transactions: any[]) {
 }
 
 // =========================
-// 🔮 MAIN FUNCTION
+//  MAIN FUNCTION
 // =========================
 export async function predictExpenseWithAI(context: any) {
   const tx = context.transactions || [];
 
   // =========================
-  // 📊 BASE CALCULATIONS
+  //  BASE CALCULATIONS
   // =========================
   const trend = trendPrediction(tx);
   const last30 = last30DaysSpend(tx);
@@ -122,53 +122,53 @@ export async function predictExpenseWithAI(context: any) {
   const { essential, lifestyle, impulsive } = categorizeSpending(tx);
 
   // =========================
-  // 📊 BASE
+  //  BASE PREDICTION
   // =========================
   let basePrediction = trend * 0.7 + last30 * 0.3;
 
   // =========================
-  // 📊 CATEGORY METRICS
+  //  CATEGORY METRICS
   // =========================
   const totalExpense = essential + lifestyle + impulsive;
   const impulsiveRatio = totalExpense ? impulsive / totalExpense : 0;
 
   // =========================
-  // 📈 ADJUSTMENT FACTOR
+  //  ADJUSTMENT FACTOR
   // =========================
   let adjustmentFactor = 1;
 
-  // 🔥 Weekend behavior
+  //  Weekend behavior
   if (weekendRatio > 0.4) {
     adjustmentFactor += 0.05;
   }
 
-  // 🎯 Goals (user trying to save)
+  //  Goals (user trying to save)
   if (context.goals?.length) {
     adjustmentFactor -= 0.05;
   }
 
-  // 🔥 High impulsive → risky
+  //  High impulsive → risky
   if (impulsiveRatio > 0.35) {
     adjustmentFactor += 0.1;
   }
 
-  // 🧠 Low impulsive → disciplined
+  //  Low impulsive → disciplined
   if (impulsiveRatio < 0.15) {
     adjustmentFactor -= 0.05;
   }
 
-  // 🎯 Lifestyle heavy
+  //  Lifestyle heavy
   if (lifestyle > essential) {
     adjustmentFactor += 0.05;
   }
 
-  // 🧱 Essential heavy → stable
+  //  Essential heavy → stable
   if (essential > lifestyle + impulsive) {
     adjustmentFactor -= 0.03;
   }
 
   // =========================
-  // 🛡 CLAMP (VERY IMPORTANT)
+  //  CLAMP
   // =========================
   adjustmentFactor = Math.max(0.8, Math.min(1.25, adjustmentFactor));
 
@@ -178,12 +178,12 @@ export async function predictExpenseWithAI(context: any) {
   }
 
   // =========================
-  // ✅ FINAL
+  //  FINAL
   // =========================
   const finalPrediction = Math.round(basePrediction * adjustmentFactor);
 
   // =========================
-  // 🤖 AI REFINEMENT
+  //  AI REFINEMENT
   // =========================
   const systemPrompt = `
 You are an advanced financial prediction AI.
@@ -251,7 +251,7 @@ Return STRICT JSON:
   try {
     const ai = JSON.parse(text);
 
-    // 🛡 SAFETY
+    //  SAFETY
     const diff = Math.abs(ai.predictedExpense - finalPrediction);
 
     if (diff > finalPrediction * 0.3) {

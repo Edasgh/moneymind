@@ -23,7 +23,7 @@ export default function UploadStatement({
   >("idle");
 
   // =========================
-  // 🔁 POLLING FUNCTION
+  //  POLLING FUNCTION
   // =========================
   const pollStatus = async (statementId: string) => {
     const interval = setInterval(async () => {
@@ -67,7 +67,7 @@ export default function UploadStatement({
   };
 
   // =========================
-  // 📤 UPLOAD HANDLER
+  //  UPLOAD HANDLER
   // =========================
   const handleUpload = async () => {
     if (!file || loading) return;

@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   const goals = finance.goals || [];
 
   // =========================
-  // 📊 BASE CALCULATIONS
+  //  BASE CALCULATIONS
   // =========================
   const totalExpense = transactions
     .filter((t: any) => t.type === "Expense")
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
     .sort((a: any, b: any) => b._score - a._score)[0];
 
   // =========================
-  // 🔄 SCENARIO ENGINE
+  //  SCENARIO ENGINE
   // =========================
   const results = scenarios.map((s: any) => {
     let newSavings = currentSavings;
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     let newMonthlySavings = monthlySavings;
 
     // =========================
-    // 🧠 APPLY SCENARIO
+    //  APPLY SCENARIO
     // =========================
     if (s.cost) {
       newSavings -= s.cost;
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
     if (newMonthlyExpense <= 0) newMonthlyExpense = 1;
 
     // =========================
-    // 📊 METRICS
+    //  METRICS
     // =========================
 
     // 🔹 Survival months
@@ -167,7 +167,7 @@ export async function POST(req: Request) {
     }
 
     // =========================
-    // 🎯 GOAL DELAY
+    //  GOAL DELAY
     // =========================
     let goalDelay = 0;
     let goalStatus: "on-track" | "delayed" | "impossible" = "on-track";
@@ -192,7 +192,7 @@ export async function POST(req: Request) {
         goalDelay = Math.round((newMonths - currentMonths) * 30);
 
         // =========================
-        // ⏳ DEADLINE CHECK
+        //  DEADLINE CHECK
         // =========================
         if (activeGoal.deadline) {
           const monthsLeft =
@@ -224,7 +224,7 @@ export async function POST(req: Request) {
   });
 
   // =========================
-  // 🧠 AI EXPLANATION
+  //  AI EXPLANATION
   // =========================
   let explanation = "";
 

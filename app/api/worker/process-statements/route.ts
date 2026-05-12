@@ -8,7 +8,7 @@ import { generateSummary, normalizeTransactions } from "@/lib/statementParseHelp
 import { createNotification } from "@/lib/createNotification";
 
 // =========================
-// ⚙️ CONFIG
+//  CONFIG
 // =========================
 const MAX_RETRIES = 5;
 const BATCH_SIZE = 3;
@@ -22,7 +22,7 @@ function getRetryDelay(attempts: number) {
 }
 
 // =========================
-// 🧠 CORE PROCESSOR
+//  CORE PROCESSOR
 // =========================
 async function processStatement(stmt: any) {
   const { transactions, rawText } = await parseStatementWithAI(stmt);
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
   let failed = 0;
 
   // =========================
-  // 🔁 PROCESS LOOP (SAFE)
+  //  PROCESS LOOP (SAFE)
   // =========================
   for (let i = 0; i < BATCH_SIZE; i++) {
     // ATOMIC FETCH + LOCK
@@ -103,7 +103,7 @@ export async function GET(req: Request) {
 
     try {
       // =========================
-      // 🔥 PROCESS
+      //  PROCESS
       // =========================
       const result = await processStatement(stmt);
 
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
 
       await stmt.save();
 
-      // 🔔 NOTIFICATION: Statement Processed
+      //  NOTIFICATION: Statement Processed
       await createNotification({
         userId: stmt.userId,
         type: "STATEMENT_PROCESSED",

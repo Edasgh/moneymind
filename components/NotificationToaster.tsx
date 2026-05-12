@@ -45,7 +45,7 @@ export default function NotificationToaster() {
   const isRefreshing = useRef(false);
 
   // =========================
-  // 📥 FETCH NOTIFICATIONS
+  //  FETCH NOTIFICATIONS
   // =========================
   const fetchNotifications = async () => {
     try {
@@ -68,7 +68,7 @@ export default function NotificationToaster() {
   };
 
   // =========================
-  // 🔄 SAFE REFRESH HANDLER
+  //  SAFE REFRESH HANDLER
   // =========================
   const triggerRefresh = async (type: Notification["type"]) => {
     if (isRefreshing.current) return;
@@ -92,7 +92,7 @@ export default function NotificationToaster() {
   };
 
   // =========================
-  // 🚀 INITIAL + FOCUS FETCH
+  //  INITIAL + FOCUS FETCH
   // =========================
   useEffect(() => {
     fetchNotifications();
@@ -104,7 +104,7 @@ export default function NotificationToaster() {
   }, []);
 
   // =========================
-  // 🔔 TOAST QUEUE PROCESSOR
+  //  TOAST QUEUE PROCESSOR
   // =========================
   useEffect(() => {
     if (queue.length === 0 || isProcessing.current) return;

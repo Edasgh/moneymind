@@ -4,11 +4,11 @@ export const fullDemoData = {
 
     transactions: [
       // =========================
-      // 👨‍🎓 STUDENT
+      //  STUDENT
       // =========================
 
       // -------------------------
-      // 💰 INCOME
+      //  INCOME
       // Total Income = 25000
       // -------------------------
       {
@@ -29,7 +29,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // 🏠 ESSENTIAL EXPENSES
+      //  ESSENTIAL EXPENSES
       // Target Total = 9000
       // =========================
 
@@ -79,7 +79,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // ✨ LIFESTYLE EXPENSES
+      //  LIFESTYLE EXPENSES
       // Target Total = 7000
       // food delivery + entertainment
       // =========================
@@ -130,7 +130,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // ⚠️ IMPULSIVE EXPENSES
+      //  IMPULSIVE EXPENSES
       // Target Total = 2500
       // =========================
 
@@ -325,11 +325,11 @@ export const fullDemoData = {
     monthlyIncome: 85000,
     transactions: [
       // =========================
-      // 👩‍💻 YOUNG PROFESSIONAL
+      //  YOUNG PROFESSIONAL
       // =========================
 
       // -------------------------
-      // 💰 INCOME
+      //  INCOME
       // Total Income = 85000
       // -------------------------
       {
@@ -341,7 +341,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // 🏠 ESSENTIAL EXPENSES
+      //  ESSENTIAL EXPENSES
       // Target Total = 28000
       // ==========================
 
@@ -409,7 +409,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // ✨ LIFESTYLE EXPENSES
+      //  LIFESTYLE EXPENSES
       // Target Total = 18000
       // =========================
 
@@ -459,7 +459,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // ⚠️ IMPULSIVE EXPENSES
+      //  IMPULSIVE EXPENSES
       // Target Total = 6000
       // =========================
 
@@ -643,7 +643,7 @@ export const fullDemoData = {
 
     transactions: [
       // -------------------------
-      // 💰 INCOME
+      //  INCOME
       // -------------------------
       {
         amount: 145000,
@@ -654,7 +654,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // 🏠 ESSENTIAL EXPENSES
+      //  ESSENTIAL EXPENSES
       // Target Total = 70000
       // =========================
 
@@ -722,7 +722,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // ✨ LIFESTYLE EXPENSES
+      //  LIFESTYLE EXPENSES
       // Target Total = 22000
       // =========================
 
@@ -772,7 +772,7 @@ export const fullDemoData = {
       },
 
       // =========================
-      // ⚠️ IMPULSIVE EXPENSES
+      //  IMPULSIVE EXPENSES
       // Target Total = 9000
       // =========================
 
@@ -951,11 +951,11 @@ export const fullDemoData = {
 
     transactions: [
       // =========================
-      // 🧑‍🎨 FREELANCER
+      //  FREELANCER
       // =========================
 
       // -------------------------
-      // 💰 INCOME
+      //  INCOME
       // irregular client payments
       // -------------------------
       {
@@ -975,7 +975,7 @@ export const fullDemoData = {
       },
 
       // -------------------------
-      // 🏠 ESSENTIAL EXPENSES
+      //  ESSENTIAL EXPENSES
       // Total ≈ 18000
       // rent, internet, software, utilities
       // -------------------------
@@ -1006,7 +1006,7 @@ export const fullDemoData = {
       },
 
       // -------------------------
-      // ✨ LIFESTYLE EXPENSES
+      //  LIFESTYLE EXPENSES
       // Total ≈ 12000
       // cafes, dining, streaming, outings
       // -------------------------
@@ -1035,7 +1035,7 @@ export const fullDemoData = {
       },
 
       // -------------------------
-      // ⚠️ IMPULSIVE EXPENSES
+      //  IMPULSIVE EXPENSES
       // Total ≈ 7000
       // gadgets / creative tools
       // -------------------------
@@ -1074,7 +1074,7 @@ export const fullDemoData = {
       },
 
       // -------------------------
-      // 🏠 ESSENTIAL
+      //  ESSENTIAL
       // -------------------------
 
       // cloud storage subscription
@@ -1105,7 +1105,7 @@ export const fullDemoData = {
       },
 
       // -------------------------
-      // ✨ LIFESTYLE
+      //  LIFESTYLE
       // -------------------------
 
       // coffee shop work session
@@ -1136,7 +1136,7 @@ export const fullDemoData = {
       },
 
       // -------------------------
-      // ⚠️ IMPULSIVE
+      //  IMPULSIVE
       // -------------------------
 
       // design asset purchase

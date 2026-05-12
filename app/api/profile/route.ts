@@ -91,7 +91,7 @@ export const PUT = async (request: Request) => {
     const userId = session.user.id;
 
     // =========================
-    // 🧑 UPDATE USER
+    //  UPDATE USER
     // =========================
     const updatedUser = await User.findByIdAndUpdate(
       userId,

@@ -14,7 +14,7 @@ function extractGoalFromMessage(message: string) {
   const text = message.toLowerCase();
 
   // =========================
-  // 💰 AMOUNT EXTRACTION
+  //  AMOUNT EXTRACTION
   // =========================
   const amountMatch = text.match(
     /(?:₹|\$|£|cad|inr|rs)?\s?(\d+(?:,\d{3})*(?:\.\d+)?)(?:\s?(k|lakh|lac|m|million))?/i,
@@ -35,7 +35,7 @@ function extractGoalFromMessage(message: string) {
   }
 
   // =========================
-  // 🎯 GOAL DETECTION
+  //  GOAL DETECTION
   // =========================
   let title = "Savings Goal";
 
@@ -244,7 +244,7 @@ export async function POST(req: Request) {
       }
 
       // =========================
-      // 📊 FETCH USER TRANSACTIONS
+      //  FETCH USER TRANSACTIONS
       // =========================
 
       let allTransactions: any[] = [];

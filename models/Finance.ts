@@ -25,7 +25,7 @@ const transactionSchema = new mongoose.Schema({
 });
 
 // =========================
-// 🎯 GOALS
+//  GOALS
 // =========================
 const GoalSchema = new mongoose.Schema(
   {
@@ -73,7 +73,7 @@ GoalSchema.set("toJSON", { virtuals: true });
 GoalSchema.set("toObject", { virtuals: true });
 
 // =========================
-// 💰 FINANCE
+//  FINANCE
 // =========================
 const FinanceSchema = new mongoose.Schema(
   {
@@ -98,7 +98,7 @@ const FinanceSchema = new mongoose.Schema(
     ],
 
     // =========================
-    // 🧠 AI MEMORY
+    //  AI MEMORY
     // =========================
     aiHistory: [
       {
@@ -146,7 +146,7 @@ const FinanceSchema = new mongoose.Schema(
     ],
 
     // =========================
-    // 🎯 GOALS
+    //  GOALS
     // =========================
     goals: [GoalSchema],
 
@@ -213,7 +213,7 @@ const FinanceSchema = new mongoose.Schema(
 );
 
 // =========================
-// ⚡ INDEXES (IMPORTANT)
+//  INDEXES
 // =========================
 FinanceSchema.index({ userId: 1, "transactions.date": -1 });
 

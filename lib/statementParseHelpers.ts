@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // =========================
-// 🧠 NORMALIZE TRANSACTIONS
+//  NORMALIZE TRANSACTIONS
 // =========================
 export function normalizeTransactions(transactions: any[]) {
   return transactions
@@ -19,7 +19,7 @@ export function normalizeTransactions(transactions: any[]) {
 }
 
 // =========================
-// 📊 SUMMARY GENERATOR
+//  SUMMARY GENERATOR
 // =========================
 export function generateSummary(normalized: any[]) {
   const totalSpent = normalized
@@ -126,16 +126,14 @@ const AIResponseSchema = z.object({
 });
 
 // =========================
-// 🔥 MAIN PARSER
+//  MAIN PARSER
 // =========================
 export function safeParseAI(input: any) {
   try {
-    // =========================
-    // 🧹 STEP 1: Normalize
-    // =========================
+    //   Normalize
     let data = typeof input === "string" ? JSON.parse(input) : input;
 
-    // 🚨 Fix stringified arrays
+    //  Fix stringified arrays
     if (typeof data.insights === "string") {
       try {
         data.insights = JSON.parse(data.insights);
@@ -152,9 +150,7 @@ export function safeParseAI(input: any) {
       }
     }
 
-    // =========================
-    // 🧠 STEP 2: CLEAN ARRAYS
-    // =========================
+    // CLEAN ARRAYS
 
     const cleanInsights = Array.isArray(data.insights)
       ? data.insights
@@ -163,7 +159,7 @@ export function safeParseAI(input: any) {
               .trim()
               .slice(0, 200);
 
-            if (!text) return null; // ❌ remove empty
+            if (!text) return null; // remove empty
 
             return {
               text,
@@ -188,7 +184,7 @@ export function safeParseAI(input: any) {
               .trim()
               .slice(0, 200);
 
-            if (!action) return null; // ❌ remove empty
+            if (!action) return null; // remove empty
 
             return {
               action,
@@ -208,9 +204,8 @@ export function safeParseAI(input: any) {
           .slice(0, 5)
       : [];
 
-    // =========================
-    // 🧠 STEP 3: FINAL OBJECT
-    // =========================
+    //  FINAL OBJECT
+
     const cleaned = {
       score: clamp(safeNumber(data.score), 0, 100),
 
@@ -241,17 +236,15 @@ export function safeParseAI(input: any) {
       },
     };
 
-    // =========================
-    // ✅ STEP 4: VALIDATE
-    // =========================
+    //  VALIDATE
+
     console.log("From statement parser : \n", AIResponseSchema.parse(cleaned));
     return AIResponseSchema.parse(cleaned);
   } catch (err) {
     console.error("❌ safeParseAI failed:", err);
 
-    // =========================
-    // 🛟 FALLBACK (never crash)
-    // =========================
+    //  FALLBACK (never crash)
+
     return {
       score: 50,
       personality: "Balanced",

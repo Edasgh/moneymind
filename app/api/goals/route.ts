@@ -72,7 +72,7 @@ export async function PUT(req: Request) {
     }
 
     // =========================
-    // 🔍 FIND GOAL AND UPDATE
+    // FIND GOAL AND UPDATE
     // =========================
     await Finance.updateOne(
       { userId, "goals._id": goalId },

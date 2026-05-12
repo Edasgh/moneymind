@@ -36,7 +36,7 @@ export const POST = async (request: Request) => {
     }
 
     // =========================
-    // 🧾 ADD TRANSACTION
+    //  ADD TRANSACTION
     // =========================
     const detectedCategory=await detectBehaviorCategoryAI(category,type);
     const newTransaction = {
@@ -50,7 +50,7 @@ export const POST = async (request: Request) => {
     finance.transactions.push(newTransaction);
 
     // =========================
-    // 🎮 GAMIFICATION ENGINE
+    //  GAMIFICATION ENGINE
     // =========================
     const game = finance.gamification || {
       level: 1,
@@ -71,7 +71,7 @@ export const POST = async (request: Request) => {
     game.xp += xpGain;
 
     // =========================
-    // ⬆️ LEVEL SYSTEM
+    //  LEVEL SYSTEM
     // =========================
     const newLevel = Math.floor(game.xp / 100) + 1;
 
@@ -92,7 +92,7 @@ export const POST = async (request: Request) => {
     }
 
     // =========================
-    // 🔥 STREAK LOGIC
+    //  STREAK LOGIC
     // =========================
     const totalExpense = finance.transactions
       .filter((t: any) => t.type === "Expense")
@@ -111,7 +111,7 @@ export const POST = async (request: Request) => {
     }
 
     // =========================
-    // 🏆 ACHIEVEMENTS
+    //  ACHIEVEMENTS
     // =========================
     const hasAchievement = (title: string) =>
       game.achievements.some((a: any) => a.title === title);
@@ -191,7 +191,7 @@ export const POST = async (request: Request) => {
     finance.gamification = game;
 
     // =========================
-    // 🔁 RESET FLAGS
+    //  RESET FLAGS
     // =========================
     finance.flags.notifiedNoTransactions = false;
 
@@ -259,7 +259,7 @@ export async function PUT(req: Request) {
     }
 
     // =========================
-    // 🔍 FIND Transaction AND UPDATE
+    //  FIND Transaction AND UPDATE
     // =========================
     await Finance.updateOne(
       { userId, "transactions._id": transactionId },
@@ -275,12 +275,12 @@ export async function PUT(req: Request) {
     );
 
     // =========================
-    // 📊 DELTA CALCULATION
+    //  DELTA CALCULATION
     // =========================
     const newAmount = amount;
 
     // =========================
-    // 🎮 LIGHT GAMIFICATION
+    //  LIGHT GAMIFICATION
     // =========================
     if (!finance.gamification) {
       finance.gamification = {
@@ -311,7 +311,7 @@ export async function PUT(req: Request) {
     finance.gamification.level = Math.floor(finance.gamification.xp / 100) + 1;
 
     // =========================
-    // 🔥 SIMPLE ACHIEVEMENTS
+    //  SIMPLE ACHIEVEMENTS
     // =========================
     const achievements = finance.gamification.achievements || [];
 
@@ -381,14 +381,14 @@ export const DELETE = async (request: Request) => {
     }
 
     // =========================
-    // 🧹 DELETE TRANSACTION
+    //  DELETE TRANSACTION
     // =========================
     finance.transactions = finance.transactions.filter(
       (tx: any) => tx._id.toString() !== transactionId,
     );
 
     // =========================
-    // 📊 RECOMPUTE BASIC METRICS
+    //  RECOMPUTE BASIC METRICS
     // =========================
     const txs = finance.transactions || [];
 
@@ -403,7 +403,7 @@ export const DELETE = async (request: Request) => {
     const savings = totalIncome - totalSpent;
 
     // =========================
-    // 🎮 GAMIFICATION (SMART UPDATE)
+    //  GAMIFICATION (SMART UPDATE)
     // =========================
     if (!finance.gamification) {
       finance.gamification = {
@@ -416,7 +416,7 @@ export const DELETE = async (request: Request) => {
 
     let achievements = finance.gamification.achievements || [];
 
-    // ❌ REMOVE invalid achievements (rare but correct)
+    //  REMOVE invalid achievements (rare but correct)
     achievements = achievements.filter((a: any) => {
       if (a.title === "💰 Smart Saver" && savings < 5000) return false;
       if (a.title === "🔥 Budget Master" && !(totalSpent < totalIncome * 0.7))
@@ -424,7 +424,7 @@ export const DELETE = async (request: Request) => {
       return true;
     });
 
-    // ✅ RE-ADD achievements if conditions satisfied
+    //  RE-ADD achievements if conditions satisfied
     if (
       savings > 5000 &&
       !achievements.find((a: any) => a.title === "💰 Smart Saver")
@@ -451,7 +451,7 @@ export const DELETE = async (request: Request) => {
     await finance.save();
 
     // =========================
-    // 🧠 OPTIONAL: TRIGGER AI (ASYNC)
+    //  OPTIONAL: TRIGGER AI (ASYNC)
     // =========================
     // fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`).catch(
     //   () => {},

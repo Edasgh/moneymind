@@ -89,7 +89,7 @@ interface FinanceContextType {
 const FinanceContext = createContext<FinanceContextType | null>(null);
 
 // =========================
-// 🚀 PROVIDER
+//  PROVIDER
 // =========================
 export const FinanceProvider = ({
   children,
@@ -130,8 +130,10 @@ export const FinanceProvider = ({
   }, [status]);
 
   // =========================
-  // ⚡ LOCAL UPDATE (OPTIMISTIC UI)
+  //  LOCAL UPDATE 
   // =========================
+
+  // update finance (LOCAL)
   const updateFinanceLocal = (data: Partial<Finance>) => {
     setFinance((prev) => {
       if (!prev) return prev;
@@ -143,6 +145,7 @@ export const FinanceProvider = ({
     });
   };
 
+  // update statements array (LOCAL)
   const updateStatementsLocal = (data: Partial<Statement>) => {
     setStatements((prev) => {
       // if no _id, just append
@@ -187,7 +190,7 @@ export const FinanceProvider = ({
 };
 
 // =========================
-// 🧠 HOOK
+//  HOOK
 // =========================
 export const useFinance = () => {
   const context = useContext(FinanceContext);

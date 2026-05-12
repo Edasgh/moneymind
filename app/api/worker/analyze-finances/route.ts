@@ -176,7 +176,7 @@ Return the result in the required JSON format.
 }
 
 // =========================
-// 📧 EMAIL
+//  EMAIL
 // =========================
 export async function sendEmail(
   userId: string,
@@ -350,7 +350,7 @@ export async function GET(req: Request) {
       const lastEntry = finance.aiHistory?.at(-1);
 
       // =========================
-      // ⏱ SKIP IF RECENT
+      //  SKIP IF RECENT
       // =========================
       if (
         lastEntry?.createdAt &&
@@ -360,7 +360,7 @@ export async function GET(req: Request) {
         continue;
       }
       // =========================
-      // 📦 FETCH STATEMENTS
+      //  FETCH STATEMENTS
       // =========================
       const statements = await Statement.find({
         _id: { $in: finance.statements },
@@ -379,21 +379,21 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 🧠 MERGE ALL TRANSACTIONS
+      //  MERGE ALL TRANSACTIONS
       // =========================
       let allTransactions: any[] = [];
 
-      // 📄 statement transactions
+      //  statement transactions
       for (const stmt of statements) {
         allTransactions.push(...(stmt.extractedTransactions || []));
       }
 
-      // ✍️ manual transactions (VERY IMPORTANT)
+      // manual transactions 
       if (finance.transactions?.length) {
         allTransactions.push(...finance.transactions);
       }
 
-      // ✍️ manual transactions (normalized)
+      // normalize manual transactions
       const normalizedManual = (finance.transactions || []).map((t: any) => ({
         amount: Number(t.amount),
         type: t.type,
@@ -415,14 +415,14 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 🚫 DATA SUFFICIENCY CHECK
+      //  DATA SUFFICIENCY CHECK
       // =========================
       const MIN_TRANSACTIONS = 15;
       const MIN_DAYS_SPAN = 7;
 
       const tx = allTransactions;
 
-      // ❌ Not enough transactions
+      //  Not enough transactions
       if (tx.length < MIN_TRANSACTIONS) {
         await createNotification({
           userId: finance.userId,
@@ -434,7 +434,7 @@ export async function GET(req: Request) {
         continue;
       }
 
-      // ❌ No income info
+      //  No income info
       if (!finance.monthlyIncome || finance.monthlyIncome <= 0) {
         await createNotification({
           userId: finance.userId,
@@ -446,7 +446,7 @@ export async function GET(req: Request) {
         continue;
       }
 
-      // ❌ Check time span (avoid analyzing 1–2 day data)
+      //  Check time span (avoid analyzing 1–2 day data)
       const dates = tx
         .map((t: any) => new Date(t.date))
         .filter((d) => !isNaN(d.getTime()))
@@ -470,7 +470,7 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 🧠 FULL AI CONTEXT
+      //  FULL AI CONTEXT
       // =========================
       const Dates: Date[] = allTransactions
         .map((t: any) => new Date(t.date))
@@ -509,7 +509,7 @@ export async function GET(req: Request) {
         monthlyIncome > 0 ? (Savings / monthlyIncome) * 100 : 0;
 
       // =========================
-      // 🚫 SKIP IF NO MEANINGFUL CHANGE
+      //  SKIP IF NO MEANINGFUL CHANGE
       // =========================
 
       const MIN_CHANGE_THRESHOLD = 0.1; // 10%
@@ -561,7 +561,7 @@ export async function GET(req: Request) {
       finance.monthlyIncome = monthlyIncome;
 
       // =========================
-      // 🧠 AI ANALYSIS (GEMINI)
+      //  AI ANALYSIS (GEMINI)
       // =========================
       let result = await withRetry(() => analyzeWithGemini(context));
 
@@ -639,7 +639,7 @@ export async function GET(req: Request) {
       // console.log("clean fixes : ",cleanFixes);
 
       // =========================
-      // 🧠 DEDUP CHECK
+      //  DEDUP CHECK
       // =========================
       const isSame =
         lastEntry &&
@@ -663,7 +663,7 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 🎯 GOALS UPDATE
+      //  GOALS UPDATE
       // =========================
       const goals = Array.isArray(finance.goals) ? finance.goals : [];
 
@@ -688,7 +688,7 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 🎯 GOAL-BASED AFFORDABILITY
+      //  GOAL-BASED AFFORDABILITY
       // =========================
       const previousEntry = finance.aiHistory?.at(-1);
       // previous snapshot
@@ -720,11 +720,11 @@ export async function GET(req: Request) {
 
           const newDecision = newSavings >= requiredAmount ? "YES" : "NO";
 
-          // 🧠 progress %
+          //  progress %
           const progress = (newSavings / requiredAmount) * 100;
 
           // =========================
-          // 🔥 TRIGGER: NOW AFFORDABLE
+          //  TRIGGER: NOW AFFORDABLE
           // =========================
           if (previousDecision === "NO" && newDecision === "YES") {
             await createNotification({
@@ -739,7 +739,7 @@ export async function GET(req: Request) {
           }
 
           // =========================
-          // ⚠️ PROGRESS UPDATE NOTIFICATION
+          //  PROGRESS UPDATE NOTIFICATION
           // =========================
           if (progress >= 70 && progress < 100 && !goal.notified70) {
             await createNotification({
@@ -753,7 +753,7 @@ export async function GET(req: Request) {
           }
 
           // =========================
-          // 📉 RISK DETECTION
+          //  RISK DETECTION
           // =========================
           if (previousSavings !== null) {
             if (newSavings < previousSavings * 0.7) {
@@ -769,7 +769,7 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 📧 WEEKLY EMAIL
+      //  WEEKLY EMAIL
       // =========================
       if (
         !finance.lastEmailSentAt ||
@@ -805,7 +805,7 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 📊 LIFE METRICS UPDATE
+      //  LIFE METRICS UPDATE
       // =========================
 
       // 🌍 COUNTRY CONFIG
@@ -867,7 +867,7 @@ export async function GET(req: Request) {
       stability = Math.max(0, Math.min(100, Math.round(stability)));
 
       // =========================
-      // ⚠️ STRESS RISK (ALIGNED WITH MODEL)
+      //  STRESS RISK (ALIGNED WITH MODEL)
       // =========================
 
       let stressRisk: "low" | "medium" | "high" = "low";
@@ -886,7 +886,7 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 🛟 EMERGENCY FUND STATUS
+      //  EMERGENCY FUND STATUS
       // =========================
 
       let emergencyFundStatus: "poor" | "average" | "good" = "poor";
@@ -898,7 +898,7 @@ export async function GET(req: Request) {
       }
 
       // =========================
-      // 📦 FINAL OBJECT
+      //  FINAL OBJECT
       // =========================
 
       finance.lifeMetrics = {
@@ -911,7 +911,7 @@ export async function GET(req: Request) {
       };
 
       // =========================
-      // 🎮 GAMIFICATION (INTELLIGENT)
+      //  GAMIFICATION 
       // =========================
       if (!finance.gamification) {
         finance.gamification = {
@@ -922,15 +922,15 @@ export async function GET(req: Request) {
         };
       }
 
-      // 🎯 XP based on score
+      //  XP based on score
       const score = result.score || 0;
       finance.gamification.xp += Math.floor(score / 5);
 
-      // 🧠 LEVEL SYSTEM
+      //  LEVEL SYSTEM
       finance.gamification.level =
         Math.floor(finance.gamification.xp / 100) + 1;
 
-      // 🏆 ACHIEVEMENTS (SMART)
+      //  ACHIEVEMENTS 
       const achievements = finance.gamification.achievements || [];
 
       // High discipline

@@ -40,7 +40,7 @@ const systemprompt = `
 
 export async function parseStatementWithAI(stmt: any) {
   // =========================
-  // 📄 FETCH FILE
+  //  FETCH FILE
   // =========================
   const fileRes = await fetch(stmt.fileUrl);
   const arrayBuffer = await fileRes.arrayBuffer();
@@ -58,13 +58,13 @@ export async function parseStatementWithAI(stmt: any) {
   }
 
   // =========================
-  // ✂️ CLEAN TEXT
+  //  CLEAN TEXT
   // =========================
   const lines = text.split("\n").filter((l) => l.trim());
   const safeText = lines.slice(0, 500).join("\n");
 
   // =========================
-  // 🛑 VALIDATION (SAVE TOKENS)
+  //  VALIDATION (SAVE TOKENS)
   // =========================
   const confidence = getStatementConfidence(safeText);
 
@@ -73,7 +73,7 @@ export async function parseStatementWithAI(stmt: any) {
   }
 
   // =========================
-  // 🤖 GEMINI
+  //  GEMINI
   // =========================
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash-lite",

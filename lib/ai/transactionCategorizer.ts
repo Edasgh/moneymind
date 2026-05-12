@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 // =========================
-// 🤖 AI CATEGORY DETECTOR
+//  AI CATEGORY DETECTOR
 // =========================
 export async function detectBehaviorCategoryAI(category: string, type: string) {
   try {
@@ -50,7 +50,7 @@ export async function detectBehaviorCategoryAI(category: string, type: string) {
 }
 
 // =========================
-// 🛡️ FALLBACK RULE ENGINE
+//  FALLBACK RULE ENGINE
 // =========================
 function detectBehaviorCategoryFallback(category: string, type: string) {
   if (type === "Income") return "Income";
