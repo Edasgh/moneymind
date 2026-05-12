@@ -40,7 +40,6 @@ const StatementSchema = new mongoose.Schema(
       totalIncome: Number,
       topCategory: String,
     },
-    isAICategorized: Boolean,
 
     processing: {
       attempts: { type: Number, default: 0 },

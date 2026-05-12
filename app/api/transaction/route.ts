@@ -7,6 +7,7 @@ import { connectDB } from "@/lib/db";
 import Finance from "@/models/Finance";
 import { createNotification } from "@/lib/createNotification";
 import { currencyMap } from "@/lib/currencyMap";
+import { detectBehaviorCategoryAI } from "@/lib/ai/transactionCategorizer";
 
 const BASE_URL = process.env.BASE_URL;
 const SECRET = process.env.WORKER_SECRET;
@@ -37,9 +38,10 @@ export const POST = async (request: Request) => {
     // =========================
     // 🧾 ADD TRANSACTION
     // =========================
+    const detectedCategory=await detectBehaviorCategoryAI(category,type);
     const newTransaction = {
       amount: Number(amount),
-      category,
+      category:type==="Income"?"Income":detectedCategory,
       type,
       mode,
       date: new Date(date),

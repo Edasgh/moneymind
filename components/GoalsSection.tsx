@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/app/analyze/page";
 import AddGoalModal from "./AddGoalModal";
-import { Finance, Goal } from "@/hooks/useFinance";
-import { Trash2Icon } from "lucide-react";
+import { Goal } from "@/hooks/useFinance";
+import { PenIcon, Trash2Icon } from "lucide-react";
 import { toast } from "react-toastify";
+import EditGoalModal from "./EditGoalModal";
 
 export default function GoalsSection({
   isDemo,
@@ -20,6 +21,9 @@ export default function GoalsSection({
   currency_str?: string;
 }) {
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
@@ -167,13 +171,32 @@ export default function GoalsSection({
                           {/* 🤖 AI BUTTON */}
                           <button
                             onClick={() => handleAskAI(goal)}
-                            className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition"
+                            className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition cursor-pointer"
                           >
                             {aiLoadingId === goal._id
                               ? "Thinking..."
                               : "Ask AI"}
                           </button>
 
+                          {/* Edit Button */}
+                          <button
+                            title={!isDemo ? "Edit" : "Edit Disabled"}
+                            onClick={() => {
+                              if (!isDemo) {
+                                if (goal._id) {
+                                  setSelectedGoal(goal);
+                                  setShowEditModal(true);
+                                }
+                              } else {
+                                toast.error(
+                                  "In Demo Mode, Goals can't be Edited!",
+                                );
+                              }
+                            }}
+                            className="text-[10px] rounded text-blue-400 transition cursor-pointer"
+                          >
+                            <PenIcon />
+                          </button>
                           {/* X Delete Button */}
                           <button
                             title={!isDemo ? "Delete" : "Delete Disabled"}
@@ -184,11 +207,11 @@ export default function GoalsSection({
                                 }
                               } else {
                                 toast.error(
-                                  "In Demo Mode Goals can't be deleted",
+                                  "In Demo Mode, Goals can't be Deleted",
                                 );
                               }
                             }}
-                            className="text-[10px] rounded text-red-400 transition"
+                            className="text-[10px] rounded text-red-400 transition cursor-pointer"
                           >
                             <Trash2Icon />
                           </button>
@@ -278,6 +301,16 @@ export default function GoalsSection({
           onClose={() => setShowModal(false)}
           onAdd={onAddGoal}
           currency_str={currency_str}
+        />
+      )}
+      {showEditModal && selectedGoal && (
+        <EditGoalModal
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedGoal(null);
+          }}
+          currency_str={currency_str}
+          goal={selectedGoal}
         />
       )}
     </>

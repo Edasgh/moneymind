@@ -130,8 +130,9 @@ export async function POST(req: Request) {
     - Encourage small steps (${currency_str}100, ${currency_str}500 savings mindset)
 
     STRICT:
-    - Plain text only
-    - No markdown
+    - Plain text ONLY
+    - Under 100 words ONLY
+    - NO markdown
     `;
     const PERSONAL_PROMPT = `
     You are MoneyMind — a behavioral finance AI.
@@ -155,8 +156,9 @@ export async function POST(req: Request) {
     - Ask user for more details instead of guessing
 
     STRICT:
-    - Plain text only
-    - No markdown
+    - Plain text ONLY
+    - Under 120 words ONLY
+    - NO markdown
     `;
 
     let systemPrompt = mode === "general" ? GENERAL_PROMPT : PERSONAL_PROMPT;
@@ -269,10 +271,32 @@ export async function POST(req: Request) {
           ? `User Transactions:\n${JSON.stringify(safeTransactions)}`
           : `No transaction data available. Ask user about income, expenses, and habits before giving advice.`;
 
+      const latestAnalysis = finance.aiHistory?.at(-1);
+
+      const aiContext = latestAnalysis
+        ? `
+        Financial Profile:
+        - Personality: ${latestAnalysis.personality}
+        - Financial Score: ${latestAnalysis.score}
+
+        Insights:
+        ${latestAnalysis.insights.map((i: any) => `- ${i.text}`).join("\n")}
+
+        Risks:
+        ${latestAnalysis.impact?.riskLevel}
+
+        Snapshot:
+        - Income: ${latestAnalysis.snapshot?.income}
+        - Spent: ${latestAnalysis.snapshot?.totalSpent}
+        - Savings Rate: ${latestAnalysis.snapshot?.savingsRate}%
+
+        Suggested Fixes:
+        ${latestAnalysis.fixes.map((f: any) => `- ${f.action}`).join("\n")}
+        `: transactionContext;
       contents = [
         {
           role: "user",
-          parts: [{ text: transactionContext }],
+          parts: [{ text: aiContext }],
         },
         ...chatHistory,
         {
@@ -332,48 +356,31 @@ export async function POST(req: Request) {
         monthlySavings > 0 ? Math.ceil(remaining / monthlySavings) : null;
 
       const GOAL_PROMPT = `
-        You are MoneyMind Goal AI.
+      You are MoneyMind Goal AI, a realistic financial coach for ${session.user.country}.
 
-        Analyze the user's financial goal realistically.
+      Goal:
+      ${goal.title}
+      Target: ${goal.targetAmount}
+      Saved: ${goal.progress?.savedAmount || 0}
+      Remaining: ${remaining}
 
-        Country: ${session.user.country}
+      Monthly Finances:
+      Income: ${monthlyIncome}
+      Spending: ${monthlySpent}
+      Savings: ${monthlySavings}
 
-        Goal:
-        - Title: ${goal.title}
-        - Target Amount: ${goal.targetAmount}
-        - Saved Already: ${goal.progress?.savedAmount || 0}
-        - Remaining: ${remaining}
+      Respond with:
+      - realistic timeline
+      - biggest spending problem
+      - 1 practical weekly action
+      - concise honest advice
 
-        User Financial Situation:
-        - Monthly Income: ${monthlyIncome}
-        - Monthly Spending: ${monthlySpent}
-        - Monthly Savings: ${monthlySavings}
-
-        Your task:
-        1. Predict realistically when this goal can be achieved
-        2. Detect problems slowing progress
-        3. Give highly actionable advice
-        4. Suggest exact behavior changes
-        5. Keep advice emotionally motivating
-        6. Adapt advice to user's country economy
-        7. If savings are too low, explain honestly
-
-        IMPORTANT:
-        - Mention estimated timeline
-        - Mention 1 unnecessary spending pattern they should control
-        - Mention 1 specific weekly action
-        - Make response practical not generic
-
-        STYLE:
-        - Friendly smart financial coach
-        - Clear and concise
-        - Plain text only
-
-        STRICT:
-        - Max 2–3 short sentences
-        - Under 80 words
-        - Prioritize actionable advice over explanation
-        `;
+      STRICT Rules:
+      - Under 80 words ONLY
+      - 1–2 sentences ONLY
+      - practical, direct, country-aware
+      - plain text ONLY
+      `;
       systemPrompt = GOAL_PROMPT;
       contents = [
         {
@@ -401,7 +408,6 @@ export async function POST(req: Request) {
       contents: contents,
       generationConfig: {
         temperature: mode === "general" ? 0.4 : 0.6,
-        maxOutputTokens: mode === "goal" ? 60 : mode === "personal" ? 120 : 100,
       },
     });
 

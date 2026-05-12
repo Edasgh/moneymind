@@ -1,340 +1,429 @@
-# [🧠 MoneyMind](https://moneymind-nomics.vercel.app/)
+# 🧠 MoneyMind AI
 
-> **An autonomous financial agent that analyzes spending, predicts future outcomes, and helps users make smarter financial decisions.**
+> **An AI-powered autonomous financial agent that analyzes spending behavior, predicts financial outcomes, and helps users make smarter money decisions.**
 
----
-
-## 🚀 Overview
-
-**MoneyMind AI** is a next-generation financial assistant that goes beyond expense tracking.
-It understands your behavior, predicts your future, and helps you make real-world financial decisions.
+🌐 Live Demo: https://moneymind-nomics.vercel.app/
 
 ---
 
-## 🎯 Problem
+# 🚀 What is MoneyMind?
+
+MoneyMind AI is a next-generation personal finance platform designed to act like an intelligent financial advisor.
+
+Instead of only tracking expenses, MoneyMind understands financial behavior, predicts future risks, simulates decisions, and continuously guides users toward better financial outcomes.
+
+It combines:
+- AI-driven analysis
+- Predictive finance
+- Behavioral insights
+- Autonomous monitoring
+- Real-time financial simulations
+
+---
+
+# 🎯 The Problem
+
+Managing money is becoming increasingly complex.
 
 Most people:
+- Don’t know where their money actually goes
+- Cannot predict future financial problems
+- Make emotional spending decisions
+- Struggle to balance savings, goals, and lifestyle
+- Lack personalized financial guidance
 
-- Don’t know where their money goes
-- Can’t predict future expenses
-- Struggle with big financial decisions
-
----
-
-## 💡 Solution
-
-MoneyMind AI acts like a **personal financial advisor**:
-
-- 📊 Tracks & analyzes spending
-- 🧠 Detects behavioral patterns
-- 🔮 Predicts future expenses
-- ⚖️ Helps make decisions
-- 🔄 Continuously improves with time
+Traditional finance apps only show numbers.
+They don’t explain behavior or help users make decisions.
 
 ---
 
-## 🧠 Core Features
+# 💡 Our Solution
 
-### 📊 AI Dashboard
+MoneyMind AI acts as an autonomous financial intelligence system.
 
-- Income / Spending / Balance overview
-- Financial Health Score (0–100)
-- Smart insights
+It:
+- Tracks spending patterns
+- Detects risky financial behavior
+- Predicts future expenses
+- Simulates financial decisions
+- Generates personalized AI insights
+- Continuously monitors financial health
+
+The platform adapts to:
+- User spending habits
+- Income patterns
+- Financial goals
+- Country-specific financial realities
 
 ---
 
-### 🧠 AI Behavioral Analysis
+# 🧠 Core Features
 
-- Personality detection (e.g., impulsive spender)
-- Key insights
-- Actionable fixes
+## 📊 AI Financial Dashboard
+
+- Income, spending & savings overview
+- Financial Stability Score
+- Smart AI-generated insights
+- Savings health tracking
+- Risk detection
+
+---
+
+## 🧠 Behavioral Finance Analysis
+
+MoneyMind analyzes user behavior patterns and generates:
+
+- Financial personality detection
+- Habit analysis
+- Spending psychology insights
+- Actionable improvement plans
+- Estimated savings impact
+
+Example:
+> “Frequent late-night impulse purchases are slowing your emergency fund growth.”
+
+---
+
+## ⚖️ AI Decision Engine
+
+Users can ask:
+
+> “Can I afford a ₹8L car?”
+> “Should I start a ₹5000 SIP?”
+> “Can I move to a more expensive apartment?”
+
+MoneyMind evaluates:
+- Income
+- Savings
+- Risk
+- Goals
+- Emergency runway
+- Predicted future expenses
+
+Then returns:
+- Recommendation
+- Risk level
+- Trade-offs
+- Long-term impact
+
+---
+
+## 🔮 Predictive Intelligence
+
+MoneyMind predicts future financial conditions using:
+- Spending history
+- Weighted trend analysis
+- Behavioral patterns
+- Essential vs lifestyle spending
+- Seasonal & weekend trends
+
+Outputs include:
+- Next month expense prediction
+- Spending trajectory
+- Financial stress indicators
+
+---
+
+## 🎮 Scenario Simulation Engine
+
+Users can simulate “what-if” decisions in real time.
+
+Examples:
+- Buy a new laptop
+- Start investing monthly
+- Reduce food delivery spending
+- Increase savings rate
+
+MoneyMind instantly shows:
+- Goal delays
+- Risk increase
 - Savings impact
+- Financial survival months
 
 ---
 
-### ⚖️ Decision Engine (🔥 Core)
+## 🎯 Smart Goal System
 
-Ask:
+Users can:
+- Create financial goals
+- Track progress
+- Predict completion timelines
+- Receive AI-generated recommendations
 
-> “Can I afford a car worth ₹8,00,000?”
-
-AI responds with:
-
-- ✅ Yes / ❌ No
-- Reason
-- Suggestions
-
----
-
-### 🔮 Expense Prediction
-
-- Predicts next month’s expenses
-- Uses:
-  - Last 30-day spending
-  - 3-month weighted trends
-  - Category behavior (Essential, Lifestyle, Impulsive)
-  - Weekend patterns
+AI adapts recommendations based on:
+- User income
+- Spending behavior
+- Country economy
+- Current savings rate
 
 ---
 
-### 🎮 Simulation Engine
+## 🤖 Autonomous AI Agent
 
-- Try “what-if” scenarios
-- Example:
-  - Reduce ₹5000 → see future impact instantly
+MoneyMind continuously monitors finances in the background.
 
----
+The autonomous worker system:
+- Detects financial risks
+- Generates insights
+- Sends reminders
+- Tracks progress
+- Updates predictions automatically
 
-### 🔄 Autonomous Agent
-
-- Monitors user continuously
-- Triggers:
-  - 🎉 Goal achieved
-  - 🚀 Progress updates
-  - ⚠️ Risk alerts
-  
-
-  We separated lightweight ingestion jobs and heavy AI analysis into independently scheduled workers to optimize cost and performance.
----
-
-### 📧 Weekly Reports
-
-- AI-generated financial summaries
-- Sent automatically via email
+Triggers include:
+- 🚨 Overspending alerts
+- 🎯 Goal milestones
+- 📈 Savings improvements
+- ⚠️ Financial risk warnings
 
 ---
 
-## 🏗️ Architecture
+## 📧 AI Weekly Reports
 
-![Architecture](./screenshots/architecture.png)
-
-### 🔁 Flow
-
-User → Frontend → Backend APIs
-→ MongoDB (Data Storage)
-→ AI Engine (Gemini)
-→ Worker (Analysis + Prediction)
-→ Notifications & Email
+Automated reports delivered via email:
+- Spending summaries
+- Financial score updates
+- Personalized recommendations
+- Goal progress tracking
 
 ---
 
-## ⚙️ Tech Stack
+## 🧪 Demo Mode
 
-### 🖥️ Frontend
+Users can instantly explore MoneyMind without uploading personal financial data.
 
-- Next.js (App Router)
+Demo personas include:
+- 👨‍🎓 Student
+- 👩‍💻 Young Professional
+- 👨‍👩‍👧 Family Budget
+- 🧑‍🎨 Freelancer
+
+Each profile contains:
+- Realistic financial transactions
+- AI insights
+- Predictions
+- Goals
+- Spending behaviors
+
+---
+
+## 🔄 High-Level Flow
+
+User → Frontend → API Layer  
+→ MongoDB Storage  
+→ AI Engine (Gemini)  
+→ Background Workers  
+→ Predictions & Notifications
+
+---
+
+# ⚡ Architecture Highlights
+
+## 🔹 Modular AI Pipeline
+
+MoneyMind separates:
+- Lightweight ingestion jobs
+- Heavy AI analysis workers
+
+This improves:
+- Scalability
+- Performance
+- Cost optimization
+
+---
+
+## 🔹 Background Worker System
+
+Scheduled workers handle:
+- AI analysis
+- Predictions
+- Notifications
+- Weekly reports
+- Goal monitoring
+
+Without blocking user interactions.
+
+---
+
+# ⚙️ Tech Stack
+
+## 🖥️ Frontend
+- Next.js App Router
 - React
 - Tailwind CSS
 - Framer Motion
 
-### 🧩 Backend
-
+## 🧩 Backend
 - Next.js API Routes
 - Node.js
 
-### 🗄️ Database
+## 🗄️ Database
+- MongoDB
+- Mongoose
 
-- MongoDB (Mongoose)
-
-### 🤖 AI Layer
-
+## 🤖 AI Layer
 - Google Gemini API
-- Custom financial logic
+- Custom financial reasoning engine
 
-### 🔄 Background Jobs
+## 🔄 Background Jobs
+- Cron workers
+- Autonomous processing system
 
-- Worker / Cron system
-
-### 📧 Email
-
+## 📧 Notifications & Email
 - Nodemailer
 
 ---
 
-## 📊 Dataset
+# 📊 Dataset & AI Training
 
-### 🧪 Demo Data
+## 🧪 Demo Data
+Synthetic financial datasets used for onboarding and testing.
 
-- Synthetic financial transactions
-- Used for controlled demo
+## 🌍 Realistic Financial Datasets
 
-### 🌍 Kaggle Dataset
+We use Kaggle datasets inspired by real-world banking behavior:
 
-- We use Kaggle datasets which are derived from real-world financial patterns, so our AI is trained on realistic spending behavior
+- [Daily Transactions Dataset](https://www.kaggle.com/datasets/prasad22/daily-transactions-dataset)
+- [Indian Bank Statement Dataset](https://www.kaggle.com/datasets/devildyno/indian-bank-statement-one-year)
 
-* Real-world inspired financial datasets from Kaggle
-   -  [Daily Transactions Dataset](https://www.kaggle.com/datasets/prasad22/daily-transactions-dataset)
-   -  [Indian Bank Statement (One Year)](https://www.kaggle.com/datasets/devildyno/indian-bank-statement-one-year)
-* Includes:
-  - Transaction history
-  - Spending patterns
-  - Time-based data
-⚠️ Note: Data is anonymized and used only for analysis.
+Used for:
+- Spending pattern analysis
+- Prediction modeling
+- Behavioral simulations
+
+⚠️ All datasets are anonymized.
 
 ---
 
-## 📸 Screenshots
+# 📸 Screenshots
 
-### 🏠 Dashboard
+## 🏠 Dashboard (Analyze Page)
+![Dashboard_1](./screenshots/analyze-1.png)
+![Dashboard_2](./screenshots/analyze-2.png)
+![Dashboard_3](./screenshots/analyze-3.png)
+![Dashboard_4](./screenshots/analyze-4.png)
 
-![Dashboard](./screenshots/dashboard.png)
+---
 
-### 🧠 AI Analysis
-
+## 🧠 AI Analysis
 ![Analysis](./screenshots/analysis.png)
 
-### 🤖 Decision Engine
+---
 
-![Chat](./screenshots/chat.png)
+## 🤖 Ask AI
+![Chat_1](./screenshots/chat-1.png)
+![Chat_2](./screenshots/chat-2.png)
 
-### 🔮 Prediction
+---
 
+## 🔮 Spending BreakDown & Prediction
 ![Prediction](./screenshots/prediction.png)
 
-### 📄 Upload
 
+## Scenario Comparison
+![Scenario_1](./screenshots/scenario-1.png)
+![Scenario_2](./screenshots/scenario-2.png)
+![Scenario_3](./screenshots/scenario-3.png)
+
+
+## Savings Impact Simulation
+![Simulation](./screenshots/simulation.png)
+---
+
+## 📄 Statement Upload
 ![Upload](./screenshots/upload.png)
 
----
 
-## 🎥 Demo Flow
-
-1. Use demo data
-2. View AI insights
-3. Ask: _“Can I afford a car?”_
-4. See prediction
-5. Simulate improvement
-6. Watch AI update decision
+## 📄 Profile
+![Profile](./screenshots/profile.png)
 
 ---
 
-## 📁 Project Structure
+# 🎥 Demo Flow
 
-```
+1. Launch demo mode
+2. Explore AI insights
+3. Ask financial questions
+4. Run simulations
+5. View predictions
+6. Track goals
+7. Receive autonomous recommendations
+
+---
+
+# 📁 Project Structure
+
+```bash
 /app
-  /analyze
   /chat
+  /analyze
   /profile
 
 /api
-  /uploadFile
-  /process-statements
-  /analyze-finances
-  /chat
+  /register
+  /auth
   /profile
+  /uploadFile
+  /internal/trigger_workers
+  /worker/process-statements
+  /worker/analyze-finances
+  /chat
+  /follow-up
+  /statements
+  /transaction
+  /goals
+  /loadDemo
+  /scenario
+  /simulate
+  /notifications
 
 /models
-  Finance.js
-  Statement.js
-  User.js
+  Finance.ts
+  Notification.ts
+  Statement.ts
+  User.ts
 
 /lib
   /ai
-  /utils
+  /demoData
+  canAfford.ts
+  convertToPdf.ts
+  convex.ts
+  createNotification.ts
+  currencyMap.ts
+  db.ts
+  sectionColors.ts
+  simulateSavings.ts
+  statementParseHelpers.ts
+  utils.ts
 
 /components
-  UploadStatement
+  AddGoalModal
   AddTransactionModal
-  TransactionTable
-  ScoreCard
-  SpendingCharts
-  SignInModal
-  SignUpModal
+  AIAnalysis
+  DemoAnalysis
+  DemoChat
+  DemoDataModal
+  EditGoalModal
+  EditProfileModal
+  EditTransactionModal
+  ExitDemoBanner
+  Footer
+  GamificationCard
+  GoalsSection
+  HowItWorks
+  LifeImpactCard
   NotificationToaster
   Providers
-  DemoChat
-  HowItWorks
-  Footer
-```
-
----
-
-## ⚡ How It Works
-
-### 1. Data Input
-
-- Upload statements (PDF/CSV)
-- Add manual transactions
-
----
-
-### 2. Processing
-
-- Extract transactions
-- Categorize spending
-- Store in database
-
----
-
-### 3. AI Analysis
-
-- Financial score
-- Insights
-- Personality
-
----
-
-### 4. Prediction
-
-- Trend-based forecasting
-- Behavioral adjustments
-
----
-
-### 5. Decision Engine
-
-- Uses:
-  - Savings
-  - Goals
-  - Predictions
-
----
-
-### 6. Automation
-
-- Background worker runs
-- Sends:
-  - Notifications
-  - Emails
-
----
-
-## 🧪 Future Improvements
-
-- 📈 Advanced ML models
-- 🏦 Bank API integration
-- 📱 Mobile app
-- 🧠 Personalized coaching
-- 📊 Advanced charts
-
----
-
-## 🌍 Real-World Impact
-
-MoneyMind AI helps users:
-
-- Understand spending
-- Make smarter decisions
-- Avoid financial mistakes
-- Achieve goals faster
-
----
-
-## 🏆 Why This Project Stands Out
-
-- 🧠 AI-driven decision making
-- 🔮 Predictive intelligence
-- ⚡ Autonomous system
-- 🌍 Real-world use case
-- 🚀 Scalable SaaS-ready architecture
-
----
-
-## 🎯 One-Line Pitch
-
-> **MoneyMind AI is an autonomous financial agent that analyzes spending, predicts future outcomes, and helps users make smarter financial decisions.**
-
----
+  ScenarioEngine
+  ScoreCard
+  ScoreMeter
+  SignInModal
+  SignUpModal
+  SpendingChart
+  StatementsCard
+  TransactionTable
+  UploadStatement
+  ```
 
 ## 🙌 Author
 

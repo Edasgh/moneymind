@@ -1,30 +1,70 @@
 "use client";
 
+import { useFinance } from "@/hooks/useFinance";
 import { FormEvent, useState } from "react";
+import { toast } from "react-toastify";
 
-export default function AddTransactionModal({
+export default function EditTransactionModal({
   onClose,
-  onAdd,
   currency_str,
+  transaction,
 }: any) {
+  const { finance, updateFinanceLocal } = useFinance();
   const [form, setForm] = useState({
-    date: "",
-    mode: "",
-    category: "",
-    amount: "",
-    type: "Expense",
+    date: transaction.date,
+    mode: transaction.mode,
+    category: transaction.category,
+    amount: transaction.amount,
+    type: transaction.type,
   });
 
   const handleChange = (key: string, value: string) => {
     setForm({ ...form, [key]: value });
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.date || !form.amount) return;
+    if (!form.date || !form.amount || !finance) return;
+    if (
+      form.amount === transaction.amount &&
+      form.category === transaction.category &&
+      form.type === transaction.type &&
+      form.mode === transaction.mode &&
+      form.date === transaction.date
+    ) {
+      toast.info("No changes made to save!");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/transaction`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...form, transactionId: transaction._id }),
+      });
 
-    onAdd(form);
-    onClose();
+      const updatedTx = {
+        _id: transaction._id,
+        ...form,
+      };
+
+      if (res.ok) {
+        updateFinanceLocal({
+          transactions: finance.transactions.map((tx) =>
+            String(tx._id) === String(updatedTx._id) ? updatedTx : tx,
+          ),
+        });
+        toast.success("Transaction edited 🚀");
+      } else {
+        toast.error("Failed to edit Transaction!");
+      }
+    } catch (error) {
+      console.log("Error in Transaction Edit : ", error);
+      toast.error("Failed to edit Transaction!");
+    } finally {
+      onClose();
+    }
   };
 
   currency_str = currency_str ?? "₹";
@@ -34,7 +74,7 @@ export default function AddTransactionModal({
       <div className="bg-black border border-white/10 rounded-2xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-semibold">Add Transaction</h2>
+          <h2 className="text-lg font-semibold">Edit Transaction</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             ✕
           </button>
@@ -47,7 +87,9 @@ export default function AddTransactionModal({
             <label className="text-xs text-gray-400">Date</label>
             <input
               type="date"
-              value={form.date}
+              value={
+                form.date ? new Date(form.date).toISOString().split("T")[0] : ""
+              }
               onChange={(e) => handleChange("date", e.target.value)}
               className="w-full mt-1 p-3 rounded-xl bg-black/40 border border-white/10 focus:ring-2 focus:ring-blue-500/40"
             />
@@ -126,7 +168,7 @@ export default function AddTransactionModal({
             onClick={handleSubmit}
             className="flex-1 py-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-500 shadow-lg hover:scale-[1.02] transition"
           >
-            Add
+            Save
           </button>
         </div>
       </div>

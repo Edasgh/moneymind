@@ -106,13 +106,13 @@ export default function ChatPage() {
     setLoading(false);
   };
 
-  async function copyResponse (text:string){
+  async function copyResponse(text: string) {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Copied to clipboard!")
+      toast.success("Copied to clipboard!");
     } catch (err) {
       console.error("Failed to copy: ", err);
-      toast.error("Failed to copy")
+      toast.error("Failed to copy");
     }
   }
 
@@ -191,7 +191,10 @@ export default function ChatPage() {
       <div className="max-w-3xl mx-auto mt-6 flex justify-center">
         <div className="flex bg-gray-800 p-1 rounded-xl border border-gray-700">
           <button
-            onClick={() => setMode("personal")}
+            onClick={() => {
+              setMode("personal");
+              setMessages([]);
+            }}
             className={`px-4 py-2 text-xs md:text-sm rounded-lg transition ${
               mode === "personal"
                 ? "bg-blue-600 text-white"
@@ -202,7 +205,10 @@ export default function ChatPage() {
           </button>
 
           <button
-            onClick={() => setMode("general")}
+            onClick={() => {
+              setMode("general");
+              setMessages([]);
+            }}
             className={`px-4 py-2 text-xs md:text-sm rounded-lg transition ${
               mode === "general"
                 ? "bg-purple-500 text-white"
@@ -319,10 +325,10 @@ export default function ChatPage() {
                   Ask Follow-up
                 </button>
                 <button
-                  onClick={async()=>await copyResponse(msg.text)}
+                  onClick={async () => await copyResponse(msg.text)}
                   className="text-xs bg-gray-800 px-2 py-1 rounded"
                 >
-                 Copy
+                  Copy
                 </button>
               </div>
             )}

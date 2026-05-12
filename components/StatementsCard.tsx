@@ -111,6 +111,7 @@ export default function StatementsCard({
                       toast.success("Statement deleted Successfully!");
                       setTimeout(() => {
                         refresh();
+                        window.location.reload();
                       }, 2500);
                     } else {
                       toast.error("Failed to delete Statement!");

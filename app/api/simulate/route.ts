@@ -20,13 +20,28 @@ export async function POST(req: Request) {
     return Response.json({ reply: "Unauthorized" }, { status: 401 });
   }
 
-  const currency_str = currencyMap[session.user.country?.toString() as keyof typeof currencyMap] || "₹"
+  const currency_str =
+    currencyMap[session.user.country?.toString() as keyof typeof currencyMap] ||
+    "₹";
 
-  const finance = await Finance.findOne({ userId:session.user.id });
+  const finance = await Finance.findOne({ userId: session.user.id });
 
   const transactions = finance.transactions;
+  const latestSnapshot = finance.aiHistory?.at(-1)?.snapshot;
 
-  const result = simulateSavingsImpact(transactions, reduction, session.user.country?.toString());
+  if (!latestSnapshot) {
+    return Response.json(
+      { error: "No financial analysis available" },
+      { status: 400 },
+    );
+  }
+
+  const result = simulateSavingsImpact(
+    transactions,
+    latestSnapshot,
+    reduction,
+    session.user.country?.toString(),
+  );
 
   return Response.json({
     ...result,

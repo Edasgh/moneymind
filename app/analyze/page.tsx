@@ -40,7 +40,8 @@ export default function Analyze() {
   const latestAnalysis = finance?.aiHistory?.at(-1);
 
   const [simulateValue, setSimulateValue] = useState(0);
-  const [simulatedExpense, setSimulatedExpense] = useState<number | null>(null);
+  const [simulationResult, setSimulationResult] = useState<any>(null);
+  const [simulationLoading, setSimulationLoading] = useState(false);
 
   const router = useRouter();
 
@@ -132,19 +133,44 @@ export default function Analyze() {
     }, 800); // wait 800 ms
   };
 
-  const simulate = () => {
-    if (!finance?.prediction?.nextMonthExpense || simulateValue <= 0) return;
+  const simulate = async () => {
+    if (simulateValue <= 0) return;
+    setSimulationLoading(true);
 
-    const newExpense = finance.prediction.nextMonthExpense - simulateValue;
+    try {
+      const res = await fetch("/api/simulate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reduction: simulateValue,
+        }),
+      });
 
-    setSimulatedExpense(newExpense);
-    toast.success("Future updated based on your decision 🚀");
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Simulation failed");
+        return;
+      }
+
+      setSimulationResult(data);
+
+      toast.success("Future updated based on your decision 🚀");
+    } catch (error) {
+      console.log(error);
+
+      toast.error("Failed to simulate savings");
+    } finally {
+      setSimulationLoading(false);
+    }
   };
 
   const deleteManualTransaction = async (transactionId: string) => {
     // console.log("Transaction id : ",transactionId)
     if (finance?.isDemo) {
-      toast.error("In Demo Mode, Manual Transactions can't be deleted!");
+      toast.error("In Demo Mode, Manual Transactions can't be Deleted!");
     } else {
       try {
         const res = await fetch("/api/transaction", {
@@ -681,36 +707,54 @@ export default function Analyze() {
                           whileTap={{ scale: 0.96 }}
                           whileHover={{ scale: 1.02 }}
                           onClick={simulate}
+                          disabled={simulationLoading}
                           className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:opacity-90 transition px-4 py-2 rounded-lg text-sm font-medium"
                         >
-                          Run Simulation
+                          {simulationLoading ? "Running..." : "Run Simulation"}
                         </motion.button>
 
                         {/* RESULT */}
-                        {simulatedExpense !== null && (
+                        {simulationResult && (
                           <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="p-3 rounded-lg bg-green-500/10 border border-green-500/20"
+                            className="p-4 rounded-xl bg-green-500/10 border border-green-500/20"
                           >
                             <p className="text-xs text-gray-400">
-                              Estimated Savings
+                              Estimated Financial Impact
                             </p>
 
-                            <p className="text-sm font-semibold text-green-400">
-                              {currency_str}
-                              {simulateValue} next month
+                            <p className="text-lg font-semibold text-green-400 mt-1">
+                              +{currency_str}
+                              {simulationResult.savingsGain}/month
                             </p>
 
-                            <p className="text-[10px] text-gray-500 mt-1">
-                              Small changes compound over time 📈
-                            </p>
+                            <div className="mt-3 space-y-1 text-xs text-gray-400">
+                              <p>
+                                📈 Savings Rate:
+                                <span className="text-white ml-1">
+                                  {simulationResult.newSavingsRate}%
+                                </span>
+                              </p>
 
-                            <p className="text-[10px] text-gray-500 mt-2 leading-relaxed">
-                              This assumes you consistently save {currency_str}
-                              {simulateValue} by cutting expenses. Over time,
-                              this improves your savings rate and helps you
-                              reach goals faster.
+                              <p>
+                                💰 Yearly Impact:
+                                <span className="text-white ml-1">
+                                  {currency_str}
+                                  {simulationResult.yearlyImpact}
+                                </span>
+                              </p>
+
+                              <p>
+                                🧠 Main Spending Area:
+                                <span className="text-white ml-1">
+                                  {simulationResult.topCategory}
+                                </span>
+                              </p>
+                            </div>
+
+                            <p className="text-[11px] text-gray-500 mt-4 leading-relaxed">
+                              {simulationResult.message}
                             </p>
                           </motion.div>
                         )}
@@ -769,10 +813,10 @@ export default function Analyze() {
                             body: JSON.stringify(goal),
                           });
 
-                          const data = await res.json();
-
                           if (res.ok) {
-                            updateFinanceLocal({ goals: data.goals });
+                            updateFinanceLocal({
+                              goals: [...(finance?.goals || []), goal],
+                            });
                             toast.success("Goal added 🚀");
                           } else {
                             toast.error("Failed to add goal!");
@@ -1006,7 +1050,7 @@ export default function Analyze() {
                             <div className="p-4 rounded-xl bg-linear-to-br from-blue-500/10 to-purple-500/10 border border-white/10">
                               <motion.h2
                                 key={
-                                  simulatedExpense ??
+                                  simulationResult?.newSpent ??
                                   finance.prediction?.nextMonthExpense
                                 }
                                 initial={{ scale: 0.9 }}
@@ -1014,13 +1058,14 @@ export default function Analyze() {
                                 className="text-lg font-semibold"
                               >
                                 {currency_str}
-                                {simulatedExpense ??
+                                {simulationResult?.newSpent ??
                                   finance.prediction?.nextMonthExpense ??
                                   0}
                               </motion.h2>
 
                               <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                                {finance.prediction?.reason ||
+                                {simulationResult?.message ||
+                                  finance.prediction?.reason ||
                                   "Based on your recent spending patterns"}
                               </p>
                             </div>
