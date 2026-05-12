@@ -813,11 +813,8 @@ export default function Analyze() {
                             },
                             body: JSON.stringify(goal),
                           });
-
                           if (res.ok) {
-                            updateFinanceLocal({
-                              goals: [...(finance?.goals || []), goal],
-                            });
+                            refresh();
                             toast.success("Goal added 🚀");
                           } else {
                             toast.error("Failed to add goal!");
