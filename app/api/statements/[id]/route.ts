@@ -55,7 +55,7 @@ export async function DELETE(
       (f: any) => f.toString() !== id.toString(),
     );
     await finance.save();
-    const stmt = await Statement.findById(id);
+    const stmt = await Statement.findByIdAndDelete(id);
     if (!stmt) {
       return NextResponse.json(
         { error: "Statement not found" },
