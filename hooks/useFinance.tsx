@@ -83,6 +83,7 @@ interface FinanceContextType {
   // partial update (for UI responsiveness)
   updateFinanceLocal: (data: Partial<Finance>) => void;
   updateStatementsLocal: (data: Partial<Statement>) => void;
+  deleteStatementLocal:(id:string)=>void;
 }
 
 const FinanceContext = createContext<FinanceContextType | null>(null);
@@ -161,6 +162,11 @@ export const FinanceProvider = ({
     });
   };
 
+
+  const deleteStatementLocal = (statementId:string)=>{
+     setStatements((prev) => prev.filter((s) => s._id !== statementId));
+  }
+
   return (
     <FinanceContext.Provider
       value={{
@@ -172,6 +178,7 @@ export const FinanceProvider = ({
         refresh: fetchFinanceData,
         updateFinanceLocal,
         updateStatementsLocal,
+        deleteStatementLocal
       }}
     >
       {children}

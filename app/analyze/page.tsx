@@ -36,6 +36,7 @@ export default function Analyze() {
     loading,
     setLoading,
     refresh,
+    deleteStatementLocal,
   } = useFinance();
   const latestAnalysis = finance?.aiHistory?.at(-1);
 
@@ -788,7 +789,7 @@ export default function Analyze() {
                         selectedStatementId={selectedStatementId}
                         setSelectedStatementId={setSelectedStatementId}
                         setShowUpload={setShowUpload}
-                        refresh={refresh}
+                        deleteStatementLocal={deleteStatementLocal}
                       />
                     </GlassCard>
                   </div>

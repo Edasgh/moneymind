@@ -12,7 +12,7 @@ export default function StatementsCard({
   selectedStatementId,
   setSelectedStatementId,
   setShowUpload,
-  refresh,
+  deleteStatementLocal
 }: any) {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
@@ -109,10 +109,7 @@ export default function StatementsCard({
                     });
                     if (res.ok) {
                       toast.success("Statement deleted Successfully!");
-                      setTimeout(() => {
-                        refresh();
-                        window.location.reload();
-                      }, 2500);
+                      deleteStatementLocal(s._id);
                     } else {
                       toast.error("Failed to delete Statement!");
                     }
