@@ -47,7 +47,8 @@ async function withRetry(fn: () => Promise<any>, retries = 3) {
 // 🧠 GEMINI ANALYSIS
 // =========================
 async function analyzeWithGemini(context: any) {
-  const systemPrompt = `
+  try {
+    const systemPrompt = `
 You are an expert financial behavior analysis AI.
 
 Your task is to analyze a user's financial data and return a STRICT JSON response.
@@ -131,21 +132,21 @@ If unsure, return best possible estimate BUT still follow schema exactly.
 Return ONLY JSON.
 `;
 
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-lite",
-    systemInstruction: systemPrompt,
-  });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash-lite",
+      systemInstruction: systemPrompt,
+    });
 
-  // Extract from context
-  const safeTransactions = (context.transactions || []).slice(0, 150);
+    // Extract from context
+    const safeTransactions = (context.transactions || []).slice(0, 150);
 
-  const safeContext = {
-    transactions: safeTransactions,
-    monthlyIncome: context.monthlyIncome,
-    goals: context.goals,
-  };
+    const safeContext = {
+      transactions: safeTransactions,
+      monthlyIncome: context.monthlyIncome,
+      goals: context.goals,
+    };
 
-  const userPrompt = `
+    const userPrompt = `
 Analyze the following financial data:
 
 ${JSON.stringify(safeContext)}
@@ -153,25 +154,98 @@ ${JSON.stringify(safeContext)}
 Return the result in the required JSON format.
 `;
 
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-    generationConfig: {
-      temperature: 0,
-      responseMimeType: "application/json",
-    },
-  });
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: {
+        temperature: 0,
+        responseMimeType: "application/json",
+      },
+    });
 
-  const text = result.response.text();
+    const text = result.response.text();
 
-  // 🧹 clean JSON
-  const cleaned = text.replace(/```json|```/g, "").trim();
+    // clean JSON
+    const cleaned = text.replace(/```json|```/g, "").trim();
 
-  try {
-    const parsed = JSON.parse(cleaned);
-    return safeParseAI(parsed);
-  } catch (err) {
-    console.error("❌ Gemini JSON parse failed:", cleaned);
-    throw err;
+    try {
+      const parsed = JSON.parse(cleaned);
+      return safeParseAI(parsed);
+    } catch (err) {
+      console.error("❌ Gemini JSON parse failed:", cleaned);
+      throw err;
+    }
+  } catch (error) {
+    console.error("❌ Gemini AI failed:", error);
+
+    // FALLBACK ANALYSIS
+    const transactions = context.transactions || [];
+
+    const totalSpent = transactions
+      .filter((t: any) => (t.type || "").toLowerCase() !== "income")
+      .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0);
+
+    const totalIncome =
+      Number(context.monthlyIncome || 0) ||
+      transactions
+        .filter((t: any) => (t.type || "").toLowerCase() === "income")
+        .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0);
+
+    const savings = totalIncome - totalSpent;
+
+    const savingsRate = totalIncome > 0 ? (savings / totalIncome) * 100 : 0;
+
+    return {
+      score:
+        savingsRate > 30
+          ? 85
+          : savingsRate > 15
+            ? 70
+            : savingsRate > 5
+              ? 55
+              : 35,
+
+      personality:
+        savingsRate > 30
+          ? "Smart Saver"
+          : savingsRate > 10
+            ? "Balanced Spender"
+            : "Risky Spender",
+
+      insights: [
+        {
+          text:
+            savingsRate < 10
+              ? "Your expenses are consuming most of your income."
+              : "You are maintaining moderate savings.",
+          type: savingsRate < 10 ? "risk" : "habit",
+        },
+      ],
+
+      fixes: [
+        {
+          action:
+            savingsRate < 10
+              ? "Reduce non-essential spending and set weekly limits."
+              : "Continue tracking expenses consistently.",
+          priority: savingsRate < 10 ? "high" : "medium",
+        },
+      ],
+
+      impact: {
+        savingsPotential: Math.max(0, Math.round(totalIncome * 0.1)),
+
+        projectedSavings: Math.max(0, Math.round(savings * 3)),
+
+        riskLevel:
+          savingsRate < 10 ? "high" : savingsRate < 25 ? "medium" : "low",
+      },
+
+      snapshot: {
+        income: Math.round(totalIncome),
+        totalSpent: Math.round(totalSpent),
+        savingsRate: Math.max(0, Math.min(100, Math.round(savingsRate))),
+      },
+    };
   }
 }
 
@@ -388,7 +462,7 @@ export async function GET(req: Request) {
         allTransactions.push(...(stmt.extractedTransactions || []));
       }
 
-      // manual transactions 
+      // manual transactions
       if (finance.transactions?.length) {
         allTransactions.push(...finance.transactions);
       }
@@ -911,7 +985,7 @@ export async function GET(req: Request) {
       };
 
       // =========================
-      //  GAMIFICATION 
+      //  GAMIFICATION
       // =========================
       if (!finance.gamification) {
         finance.gamification = {
@@ -930,7 +1004,7 @@ export async function GET(req: Request) {
       finance.gamification.level =
         Math.floor(finance.gamification.xp / 100) + 1;
 
-      //  ACHIEVEMENTS 
+      //  ACHIEVEMENTS
       const achievements = finance.gamification.achievements || [];
 
       // High discipline

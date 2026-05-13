@@ -2,8 +2,18 @@ name: Worker Jobs
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # runs every 5 minutes
-  workflow_dispatch:        # allows manual trigger
+    - cron: "*/5 * * * *" # runs every 5 minutes
+  workflow_dispatch: # allows manual trigger
+    inputs:
+      run_process:
+        description: "Run statement processor"
+        required: false
+        default: "true"
+
+      run_analysis:
+        description: "Run finance analysis"
+        required: false
+        default: "false"
 
 jobs:
   worker:
@@ -11,40 +21,67 @@ jobs:
 
     steps:
       - name: Call Process Statements API
+        if: ${{ github.event.inputs.run_process != 'false' }}
         run: |
           response=$(curl -s -w "\n%{http_code}" "${{ secrets.BASE_URL }}/api/worker/process-statements?secret=${{ secrets.WORKER_SECRET }}")
           body=$(echo "$response" | head -n -1)
           status=$(echo "$response" | tail -n 1)
-          
+
           echo "Response Status: $status"
           echo "Response Body: $body"
-          
+
           if [ "$status" -ne 200 ]; then
             echo "❌ API failed with status $status"
             exit 1
           fi
-          
 
       - name: Call Analyze Finances API (hourly only)
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.run_analysis == 'true' }}
         run: |
-          MINUTE=$(date +%M)
+          EVENT_NAME="${{ github.event_name }}"
 
-          if [ "$MINUTE" = "00" ]; then
-            echo "Running hourly analysis..."
-            response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.BASE_URL }}/api/worker/analyze-finances?secret=${{ secrets.WORKER_SECRET }}")
-            body=$(echo "$response" | head -n -1)
-            status=$(echo "$response" | tail -n 1)
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "${{ github.event.inputs.run_analysis }}" = "true" ]; then
+           echo "Manual trigger detected → Running analysis immediately"
+
+           response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.BASE_URL }}/api/worker/analyze-finances?secret=${{ secrets.WORKER_SECRET }}")
+
+           body=$(echo "$response" | head -n -1)
+           status=$(echo "$response" | tail -n 1)
+
+           echo "Analysis API Status: $status"
+
+           if [ -n "$body" ]; then
+            echo "Analysis Response: $body"
+           fi
+
+           if [ "$status" -ne 200 ]; then
+            echo "❌ Analyze Finances API failed"
+            exit 1
+           fi
+
+           echo "✅ Manual analysis completed" 
+
+          else
+
+            MINUTE=$(date +%M)
+
+            if [ "$MINUTE" = "00" ]; then
+             echo "Running hourly analysis..."
+             response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.BASE_URL }}/api/worker/analyze-finances?secret=${{ secrets.WORKER_SECRET }}")
+             body=$(echo "$response" | head -n -1)
+             status=$(echo "$response" | tail -n 1)
             
-            echo "Analysis API Status: $status"
-            if [ -n "$body" ]; then
+             echo "Analysis API Status: $status"
+             if [ -n "$body" ]; then
               echo "Analysis Response: $body"
-            fi
+             fi
             
-            if [ "$status" -ne 200 ]; then
+             if [ "$status" -ne 200 ]; then
               echo "❌ Analyze Finances API failed with status $status"
               exit 1
-            fi
-            echo "✅ Analyze Finances API succeeded"
-          else
-            echo "Skipping analysis this run"
+             fi
+             echo "✅ Analyze Finances API succeeded"
+           else
+            echo "⏭️ Skipping analysis this scheduled run"
+           fi
           fi

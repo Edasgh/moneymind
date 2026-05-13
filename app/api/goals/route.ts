@@ -4,6 +4,7 @@ import Finance from "@/models/Finance";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
+import { triggerWorker } from "@/lib/triggerWorker";
 
 const BASE_URL = process.env.BASE_URL;
 const SECRET = process.env.WORKER_SECRET;
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     await finance.save();
 
     // trigger analysis of finance
-    await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
+     await triggerWorker({ runProcess: false, runAnalysis: true });
 
     return NextResponse.json({ success: true, goals:finance.goals },{status:201});
   } catch (error) {
@@ -87,7 +88,7 @@ export async function PUT(req: Request) {
     );
 
     // trigger analysis of finance
-    await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
+    await triggerWorker({ runProcess: false, runAnalysis: true });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
@@ -109,26 +110,31 @@ export async function DELETE(req: Request) {
    }
 
    try {
-    await connectDB();
+     await connectDB();
 
-    const userId = session.user.id;
+     const userId = session.user.id;
 
-    const { goalId } = await req.json();
+     const { goalId } = await req.json();
 
-    const finance = await Finance.findOne({ userId });
+     const finance = await Finance.findOne({ userId });
 
-    if (!finance) {
-      return NextResponse.json({ error: "No finance profile" },{status:404});
-    }
+     if (!finance) {
+       return NextResponse.json(
+         { error: "No finance profile" },
+         { status: 404 },
+       );
+     }
 
-    finance.goals = finance.goals.filter((g: any) => g._id.toString() !== goalId);
+     finance.goals = finance.goals.filter(
+       (g: any) => g._id.toString() !== goalId,
+     );
 
-    await finance.save();
+     await finance.save();
 
-    // trigger analysis of finance
-    await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
+     // trigger analysis of finance
+     await triggerWorker({ runProcess: false, runAnalysis: true });
 
-    return NextResponse.json({ success: true },{status:200});
+     return NextResponse.json({ success: true }, { status: 200 });
    } catch (error) {
     console.log("Error while deleting goal :", error);
     return NextResponse.json({ error: "Failed to delete goal" }, { status: 500 });

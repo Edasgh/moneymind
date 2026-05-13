@@ -8,9 +8,7 @@ import Finance from "@/models/Finance";
 import { createNotification } from "@/lib/createNotification";
 import { currencyMap } from "@/lib/currencyMap";
 import { detectBehaviorCategoryAI } from "@/lib/ai/transactionCategorizer";
-
-const BASE_URL = process.env.BASE_URL;
-const SECRET = process.env.WORKER_SECRET;
+import { triggerWorker } from "@/lib/triggerWorker";
 
 export const POST = async (request: Request) => {
   try {
@@ -20,7 +18,10 @@ export const POST = async (request: Request) => {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const currency_str = currencyMap[session.user.country?.toString() as keyof typeof currencyMap] || "₹"
+    const currency_str =
+      currencyMap[
+        session.user.country?.toString() as keyof typeof currencyMap
+      ] || "₹";
 
     const { amount, category, type, mode, date } = await request.json();
 
@@ -38,10 +39,10 @@ export const POST = async (request: Request) => {
     // =========================
     //  ADD TRANSACTION
     // =========================
-    const detectedCategory=await detectBehaviorCategoryAI(category,type);
+    const detectedCategory = await detectBehaviorCategoryAI(category, type);
     const newTransaction = {
       amount: Number(amount),
-      category:type==="Income"?"Income":detectedCategory,
+      category: type === "Income" ? "Income" : detectedCategory,
       type,
       mode,
       date: new Date(date),
@@ -204,15 +205,15 @@ export const POST = async (request: Request) => {
       message: `${currency_str}${amount} ${type.toLowerCase()} recorded`,
     });
 
-    // const TRIGGER_AMOUNT = 1000; // adjust
+    const TRIGGER_AMOUNT = 1000; // adjust
 
-    // if (
-    //   newTransaction.amount >= TRIGGER_AMOUNT ||
-    //   finance.latest_no_of_transactions <= 5
-    // ) {
-    //   // trigger analysis of finance
-    //   await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
-    // }
+    if (
+      newTransaction.amount >= TRIGGER_AMOUNT ||
+      finance.latest_no_of_transactions <= 5
+    ) {
+      // trigger analysis of finance
+      await triggerWorker({ runProcess: false, runAnalysis: true });
+    }
 
     return NextResponse.json(
       {
@@ -231,7 +232,6 @@ export const POST = async (request: Request) => {
     );
   }
 };
-
 
 // update a manually added transaction
 export async function PUT(req: Request) {
@@ -300,11 +300,6 @@ export async function PUT(req: Request) {
       xpChange -= Math.floor(newAmount / 500); // penalty
     }
 
-    // 🔹 If type changed (important)
-    // if (oldType !== txn.type) {
-    //   xpChange += txn.type === "Income" ? 5 : -5;
-    // }
-
     finance.gamification.xp += xpChange;
 
     // 🔹 LEVEL UPDATE
@@ -331,18 +326,15 @@ export async function PUT(req: Request) {
     if (finance.gamification.xp > 500) unlock("💪 Consistent Tracker");
 
     finance.gamification.achievements = achievements;
-    
+
     await finance.save();
 
-    // const TRIGGER_AMOUNT = 1000; // adjust
+    const TRIGGER_AMOUNT = 1000; // adjust
 
-    // if (
-    //   newTransaction.amount >= TRIGGER_AMOUNT ||
-    //   finance.latest_no_of_transactions <= 5
-    // ) {
-    //   // trigger analysis of finance
-    //   await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
-    // }
+    if (amount >= TRIGGER_AMOUNT || finance.latest_no_of_transactions <= 5) {
+      // trigger analysis of finance
+      await triggerWorker({ runProcess: false, runAnalysis: true });
+    }
 
     return NextResponse.json(
       { message: "Transaction updated" },
@@ -353,7 +345,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json(
       { error: "Failed to update transaction" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -450,12 +442,8 @@ export const DELETE = async (request: Request) => {
 
     await finance.save();
 
-    // =========================
-    //  OPTIONAL: TRIGGER AI (ASYNC)
-    // =========================
-    // fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`).catch(
-    //   () => {},
-    // );
+    // trigger analysis of finance
+    await triggerWorker({ runProcess: false, runAnalysis: true });
 
     return NextResponse.json(
       {

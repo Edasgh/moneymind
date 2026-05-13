@@ -284,6 +284,7 @@ export default function Analyze() {
             }}
             currency_str={currency_str}
             onAdd={async (tx: Transaction) => {
+              setLoading(true);
               const res = await fetch("/api/transaction", {
                 method: "POST",
                 headers: {
@@ -293,13 +294,15 @@ export default function Analyze() {
               });
 
               const data = await res.json();
-
+              
               if (res.ok) {
                 updateFinanceLocal({ transactions: data.transactions });
                 setManualTransactions(data.transactions);
+                setLoading(false);
                 setShowAddModal(false);
                 toast.success("Transaction added 🚀");
               } else {
+                setLoading(false);
                 toast.error("Failed to add transaction");
               }
             }}

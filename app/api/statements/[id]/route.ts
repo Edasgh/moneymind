@@ -8,12 +8,11 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 import Finance from "@/models/Finance";
 import { getConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
+import { triggerWorker } from "@/lib/triggerWorker";
 
 //for uploading to convex cloud
 const convexClient = getConvexClient();
 
-const BASE_URL = process.env.BASE_URL;
-const SECRET = process.env.WORKER_SECRET;
 
 export async function GET(
   req: NextRequest,
@@ -68,7 +67,7 @@ export async function DELETE(
     });
 
     // trigger analysis of finance
-    await fetch(`${BASE_URL}/api/worker/analyze-finances?secret=${SECRET}`);
+    await triggerWorker({ runProcess: false, runAnalysis: true });
 
     return NextResponse.json(
       { message: "Statement deleted successfully!" },
