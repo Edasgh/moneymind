@@ -364,6 +364,7 @@ Used for:
   /profile
   /uploadFile
   /internal/trigger_workers
+  /internal/trigger_analysis
   /worker/process-statements
   /worker/analyze-finances
   /chat
@@ -394,6 +395,7 @@ Used for:
   sectionColors.ts
   simulateSavings.ts
   statementParseHelpers.ts
+  triggerWorker.ts
   utils.ts
 
 /components
