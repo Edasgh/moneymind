@@ -9,10 +9,13 @@ export function normalizeTransactions(transactions: any[]) {
     .map((t) => ({
       date: t.date ? new Date(t.date) : new Date(),
       amount: Math.abs(Number(t.amount) || 0),
-      category: ["Essential", "Lifestyle", "Impulsive"].includes(t.category)
-        ? t.category
-        : "Lifestyle",
-      mode: t.mode || "UPI",
+      category:
+        t.type === "Income"
+          ? "Income"
+          : ["Essential", "Lifestyle", "Impulsive"].includes(t.category)
+            ? t.category
+            : "Lifestyle",
+      mode: ["UPI", "Card", "Cash", "Bank"].includes(t.mode) ? t.mode : "UPI",
       type: t.type === "Income" ? "Income" : "Expense",
     }))
     .filter((t) => t.date && !isNaN(t.date.getTime())); // remove invalid dates
@@ -50,13 +53,13 @@ export function generateSummary(normalized: any[]) {
   };
 }
 
-export function getSpendingPersonality(summary: any) {
-  if (summary.impulsive > summary.essential) return "⚡ Impulsive Spender";
+// export function getSpendingPersonality(summary: any) {
+//   if (summary.impulsive > summary.essential) return "⚡ Impulsive Spender";
 
-  if (summary.lifestyle > summary.essential) return "🎯 Lifestyle Lover";
+//   if (summary.lifestyle > summary.essential) return "🎯 Lifestyle Lover";
 
-  return "🧠 Balanced Planner";
-}
+//   return "🧠 Balanced Planner";
+// }
 
 export function getStatementConfidence(text: string) {
   let score = 0;

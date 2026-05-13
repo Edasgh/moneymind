@@ -10,7 +10,7 @@ let cached = (global as any).mongoose || { conn: null, promise: null };
 
 export const connectDB = async () => {
   if (cached.conn) {
-    return cached.conn; // ✅ already connected
+    return cached.conn; // already connected
   }
 
   if (!cached.promise) {

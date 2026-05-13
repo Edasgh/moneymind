@@ -4,39 +4,56 @@ import { getStatementConfidence } from "@/lib/statementParseHelpers";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const systemprompt = `
-  You are a financial behavior analyzer.
+You are a financial behavior analyzer.
 
-  Classify each transaction into ONLY these categories:
-  - Essential (needs)
-  - Lifestyle (planned wants)
-  - Impulsive (unplanned / emotional)
+Classify each transaction into ONLY these categories:
+- Essential (needs)
+- Lifestyle (planned wants)
+- Impulsive (unplanned / emotional)
 
-  STRICT Rules:
-  - Extract ONLY real transactions
-  - Ignore headers, totals, balances
-  - Normalize all dates to YYYY-MM-DD
-  - Amount must be positive number
-  - Detect type correctly:
-    - money in → Income
-    - money out → Expense
+STRICT Rules:
+- Extract ONLY real transactions
+- Ignore headers, totals, balances
+- Normalize all dates to YYYY-MM-DD
+- Amount must be positive number
 
-  - Groceries, rent, bills → Essential
-  - Netflix, dining, shopping → Lifestyle
-  - Late-night food, random shopping → Impulsive
+Detect type correctly:
+- money received / salary / refund / credited → Income
+- money spent / debited / payment → Expense
 
-  Return ONLY valid JSON array.
-  No markdown. No explanation.
+Category rules:
+- Groceries, rent, medical, fuel, utilities, bills → Essential
+- Netflix, subscriptions, dining, shopping, entertainment → Lifestyle
+- Random online shopping, late-night food, emotional spending → Impulsive
 
-  [
-    {
-      "date": "YYYY-MM-DD",
-      "amount": number,
-      "category": "Essential | Lifestyle | Impulsive",
-      "mode": "UPI | Card | Cash | Bank",
-      "type": "Income | Expense"
-    }
-  ]
-  `;
+Mode MUST be ONLY one of these EXACT values:
+- UPI
+- Card
+- Cash
+- Bank
+
+STRICT MODE RULES:
+- Never invent a new mode
+- Never return Wallet, NetBanking, Transfer, ATM, Debit Card, Credit Card, IMPS, NEFT, Others etc.
+- Debit/Credit cards → Card
+- UPI apps/payments → UPI
+- ATM withdrawals → Cash
+- Bank transfer / NEFT / IMPS / salary credit → Bank
+
+Return ONLY valid JSON array.
+No markdown.
+No explanation.
+
+[
+  {
+    "date": "YYYY-MM-DD",
+    "amount": number,
+    "category": "Essential | Lifestyle | Impulsive",
+    "mode": "UPI | Card | Cash | Bank",
+    "type": "Income | Expense"
+  }
+]
+`;
 
 export async function parseStatementWithAI(stmt: any) {
   // =========================
