@@ -341,7 +341,7 @@ function getEmailTemplate(data: any) {
 
       <!-- CTA -->
       <div style="text-align:center;margin-top:20px;">
-        <a href="${process.env.BASE_URL}/dashboard"
+        <a href="${process.env.BASE_URL}/analyze"
           style="background:#2563eb;color:white;padding:10px 16px;
           border-radius:8px;text-decoration:none;font-size:14px;">
           Open Dashboard

@@ -3,6 +3,7 @@
 > **An AI-powered autonomous financial agent that analyzes spending behavior, predicts financial outcomes, and helps users make smarter money decisions.**
 
 🌐 Live Demo: https://moneymind-nomics.vercel.app/
+🎥 Demo Video : https://youtu.be/Zo7CZooa6hw?si=e7Roa9l6OwBcQu2o
 
 ---
 
@@ -426,6 +427,18 @@ Used for:
   TransactionTable
   UploadStatement
   ```
+
+## Planning to expand MoneyMind with:
+
+* 🏦 Bank API integrations & Secure password protected statement upload
+* 📱 Mobile applications
+* 📈 Advanced ML-based forecasting
+* 🧾 Tax planning assistance
+* 🧠 Deeper personalized coaching
+* 🌍 Multi-country financial adaptation
+* 💬 Voice-based financial assistant
+* 📊 Advanced analytics & investment insights
+* 💬 Adding User feedback form in the app itself
 
 ## 🙌 Author
 
