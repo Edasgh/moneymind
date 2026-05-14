@@ -351,6 +351,51 @@ Used for:
 
 ---
 
+# Set up environment variables
+```env
+GEMINI_API_KEY=
+
+NEXTAUTH_URL="http://localhost:3000"
+
+BASE_URL="http://localhost:3000"
+
+NEXTAUTH_SECRET=
+
+MONGODB_URI=
+
+WORKER_SECRET=
+
+
+GOOGLE_ACCOUNT_USER=
+GOOGLE_ACCOUNT_PASS=
+GOOGLE_ACCOUNT_APP_NAME=
+
+GITHUB_OWNER=
+GITHUB_REPO=
+GITHUB_TOKEN=
+
+# local variables
+# Deployment used by `npx convex dev`
+CONVEX_DEPLOYMENT=
+
+NEXT_PUBLIC_CONVEX_URL=
+
+NEXT_PUBLIC_CONVEX_SITE_URL=
+
+
+```
+
+# Local setup
+```
+git clone https://github.com/Edasgh/moneymind.git
+cd moneymind
+npm install
+npm run dev
+
+# for convex setup
+npm convex dev
+```
+
 # 📁 Project Structure
 
 ```bash
@@ -427,8 +472,9 @@ Used for:
   TransactionTable
   UploadStatement
   ```
+---
 
-## Planning to expand MoneyMind with:
+# Planning to expand MoneyMind with:
 
 * 🏦 Bank API integrations & Secure password protected statement upload
 * 📱 Mobile applications
@@ -440,6 +486,6 @@ Used for:
 * 📊 Advanced analytics & investment insights
 * 💬 Adding User feedback form in the app itself
 
-## 🙌 Author
+# 🙌 Author
 
 Built with ❤️ for real-world impact
