@@ -186,14 +186,11 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
-          onClick={() =>
-            document
-              .getElementById("how-it-works")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
           className="mt-6 bg-gray-800 px-5 py-2 rounded-xl text-xs md:text-sm hover:bg-gray-700"
         >
-          🎬 Watch Demo
+          <Link href={"https://youtu.be/b62I6GMT8fU?si=E3xUKIk6c08Kk0mP"} target="_blank">
+            🎬 Watch Demo
+          </Link>
         </motion.button>
       </motion.section>
 

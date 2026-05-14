@@ -4,7 +4,9 @@
 
 🌐 Live Demo: https://moneymind-nomics.vercel.app/
 
-🎥 Demo Video : https://youtu.be/Zo7CZooa6hw?si=e7Roa9l6OwBcQu2o
+🎥 Demo Video 1 : https://youtu.be/ZsrgbS3F9k8?si=vMbSXouS-KrZZmHR
+
+🎥 Demo Video 2 (version 1.1.0) : https://youtu.be/b62I6GMT8fU?si=E3xUKIk6c08Kk0mP
 
 ---
 
@@ -259,7 +261,6 @@ Scheduled workers handle:
 
 - AI analysis
 - Predictions
-- Notifications
 - Weekly reports
 - Goal monitoring
 
@@ -336,6 +337,18 @@ Used for:
 
 ---
 
+
+## Add Goal
+![Add Goal](./screenshots/add-goal.png)
+
+## Ask AI about Goal
+![Ask Goal](./screenshots/ask-goal.png)
+
+## Add Transaction
+![Add Transaction](./screenshots/add-transaction.png)
+
+---
+
 ## 🧠 AI Analysis
 
 ![Analysis](./screenshots/analysis.png)
@@ -366,6 +379,7 @@ Used for:
 ## 📄 Statement Upload
 
 ![Upload](./screenshots/upload.png)
+
 
 ## 📄 Profile
 
