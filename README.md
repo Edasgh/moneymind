@@ -39,7 +39,7 @@ They don’t explain behavior or help users make decisions.
 
 ---
 
-# 💡 Our Solution
+# 💡 Solution
 
 MoneyMind AI acts as an autonomous financial intelligence system.
 
@@ -282,7 +282,7 @@ Synthetic financial datasets used for onboarding and testing.
 
 ## 🌍 Realistic Financial Datasets
 
-We use Kaggle datasets inspired by real-world banking behavior:
+Kaggle datasets are used here, inspired by real-world banking behavior:
 
 - [Daily Transactions Dataset](https://www.kaggle.com/datasets/prasad22/daily-transactions-dataset)
 - [Indian Bank Statement Dataset](https://www.kaggle.com/datasets/devildyno/indian-bank-statement-one-year)
