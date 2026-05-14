@@ -15,6 +15,7 @@ MoneyMind AI is a next-generation personal finance platform designed to act like
 Instead of only tracking expenses, MoneyMind understands financial behavior, predicts future risks, simulates decisions, and continuously guides users toward better financial outcomes.
 
 It combines:
+
 - AI-driven analysis
 - Predictive finance
 - Behavioral insights
@@ -28,6 +29,7 @@ It combines:
 Managing money is becoming increasingly complex.
 
 Most people:
+
 - Don’t know where their money actually goes
 - Cannot predict future financial problems
 - Make emotional spending decisions
@@ -44,6 +46,7 @@ They don’t explain behavior or help users make decisions.
 MoneyMind AI acts as an autonomous financial intelligence system.
 
 It:
+
 - Tracks spending patterns
 - Detects risky financial behavior
 - Predicts future expenses
@@ -52,6 +55,7 @@ It:
 - Continuously monitors financial health
 
 The platform adapts to:
+
 - User spending habits
 - Income patterns
 - Financial goals
@@ -82,6 +86,7 @@ MoneyMind analyzes user behavior patterns and generates:
 - Estimated savings impact
 
 Example:
+
 > “Frequent late-night impulse purchases are slowing your emergency fund growth.”
 
 ---
@@ -95,6 +100,7 @@ Users can ask:
 > “Can I move to a more expensive apartment?”
 
 MoneyMind evaluates:
+
 - Income
 - Savings
 - Risk
@@ -103,6 +109,7 @@ MoneyMind evaluates:
 - Predicted future expenses
 
 Then returns:
+
 - Recommendation
 - Risk level
 - Trade-offs
@@ -113,6 +120,7 @@ Then returns:
 ## 🔮 Predictive Intelligence
 
 MoneyMind predicts future financial conditions using:
+
 - Spending history
 - Weighted trend analysis
 - Behavioral patterns
@@ -120,6 +128,7 @@ MoneyMind predicts future financial conditions using:
 - Seasonal & weekend trends
 
 Outputs include:
+
 - Next month expense prediction
 - Spending trajectory
 - Financial stress indicators
@@ -131,12 +140,14 @@ Outputs include:
 Users can simulate “what-if” decisions in real time.
 
 Examples:
+
 - Buy a new laptop
 - Start investing monthly
 - Reduce food delivery spending
 - Increase savings rate
 
 MoneyMind instantly shows:
+
 - Goal delays
 - Risk increase
 - Savings impact
@@ -147,12 +158,14 @@ MoneyMind instantly shows:
 ## 🎯 Smart Goal System
 
 Users can:
+
 - Create financial goals
 - Track progress
 - Predict completion timelines
 - Receive AI-generated recommendations
 
 AI adapts recommendations based on:
+
 - User income
 - Spending behavior
 - Country economy
@@ -165,6 +178,7 @@ AI adapts recommendations based on:
 MoneyMind continuously monitors finances in the background.
 
 The autonomous worker system:
+
 - Detects financial risks
 - Generates insights
 - Sends reminders
@@ -172,6 +186,7 @@ The autonomous worker system:
 - Updates predictions automatically
 
 Triggers include:
+
 - 🚨 Overspending alerts
 - 🎯 Goal milestones
 - 📈 Savings improvements
@@ -182,6 +197,7 @@ Triggers include:
 ## 📧 AI Weekly Reports
 
 Automated reports delivered via email:
+
 - Spending summaries
 - Financial score updates
 - Personalized recommendations
@@ -194,12 +210,14 @@ Automated reports delivered via email:
 Users can instantly explore MoneyMind without uploading personal financial data.
 
 Demo personas include:
+
 - 👨‍🎓 Student
 - 👩‍💻 Young Professional
 - 👨‍👩‍👧 Family Budget
 - 🧑‍🎨 Freelancer
 
 Each profile contains:
+
 - Realistic financial transactions
 - AI insights
 - Predictions
@@ -223,10 +241,12 @@ User → Frontend → API Layer
 ## 🔹 Modular AI Pipeline
 
 MoneyMind separates:
+
 - Lightweight ingestion jobs
 - Heavy AI analysis workers
 
 This improves:
+
 - Scalability
 - Performance
 - Cost optimization
@@ -236,6 +256,7 @@ This improves:
 ## 🔹 Background Worker System
 
 Scheduled workers handle:
+
 - AI analysis
 - Predictions
 - Notifications
@@ -249,28 +270,34 @@ Without blocking user interactions.
 # ⚙️ Tech Stack
 
 ## 🖥️ Frontend
+
 - Next.js App Router
 - React
 - Tailwind CSS
 - Framer Motion
 
 ## 🧩 Backend
+
 - Next.js API Routes
 - Node.js
 
 ## 🗄️ Database
+
 - MongoDB
 - Mongoose
 
 ## 🤖 AI Layer
+
 - Google Gemini API
 - Custom financial reasoning engine
 
 ## 🔄 Background Jobs
+
 - Cron workers
 - Autonomous processing system
 
 ## 📧 Notifications & Email
+
 - Nodemailer
 
 ---
@@ -278,6 +305,7 @@ Without blocking user interactions.
 # 📊 Dataset & AI Training
 
 ## 🧪 Demo Data
+
 Synthetic financial datasets used for onboarding and testing.
 
 ## 🌍 Realistic Financial Datasets
@@ -288,6 +316,7 @@ Kaggle datasets are used here, inspired by real-world banking behavior:
 - [Indian Bank Statement Dataset](https://www.kaggle.com/datasets/devildyno/indian-bank-statement-one-year)
 
 Used for:
+
 - Spending pattern analysis
 - Prediction modeling
 - Behavioral simulations
@@ -299,6 +328,7 @@ Used for:
 # 📸 Screenshots
 
 ## 🏠 Dashboard (Analyze Page)
+
 ![Dashboard_1](./screenshots/analyze-1.png)
 ![Dashboard_2](./screenshots/analyze-2.png)
 ![Dashboard_3](./screenshots/analyze-3.png)
@@ -307,35 +337,38 @@ Used for:
 ---
 
 ## 🧠 AI Analysis
+
 ![Analysis](./screenshots/analysis.png)
 
 ---
 
 ## 🤖 Ask AI
+
 ![Chat_1](./screenshots/chat-1.png)
 ![Chat_2](./screenshots/chat-2.png)
 
 ---
 
 ## 🔮 Spending BreakDown & Prediction
+
 ![Prediction](./screenshots/prediction.png)
 
-
 ## Scenario Comparison
+
 ![Scenario_1](./screenshots/scenario-1.png)
 ![Scenario_2](./screenshots/scenario-2.png)
 ![Scenario_3](./screenshots/scenario-3.png)
 
-
 ## Savings Impact Simulation
-![Simulation](./screenshots/simulation.png)
----
+
+## ![Simulation](./screenshots/simulation.png)
 
 ## 📄 Statement Upload
+
 ![Upload](./screenshots/upload.png)
 
-
 ## 📄 Profile
+
 ![Profile](./screenshots/profile.png)
 
 ---
@@ -353,6 +386,7 @@ Used for:
 ---
 
 # Set up environment variables
+
 ```env
 GEMINI_API_KEY=
 
@@ -387,6 +421,7 @@ NEXT_PUBLIC_CONVEX_SITE_URL=
 ```
 
 # Local setup
+
 ```
 git clone https://github.com/Edasgh/moneymind.git
 cd moneymind
@@ -394,7 +429,7 @@ npm install
 npm run dev
 
 # for convex setup
-npm convex dev
+npx convex dev
 ```
 
 # 📁 Project Structure
@@ -404,6 +439,11 @@ npm convex dev
   /chat
   /analyze
   /profile
+  layout.tsx
+  not-found.tsx
+  error.tsx
+  page.tsx
+  favicon.ico
 
 /api
   /register
@@ -472,20 +512,39 @@ npm convex dev
   StatementsCard
   TransactionTable
   UploadStatement
-  ```
+
+/convex
+   /_generated
+   fileControls.ts
+
+/hooks
+  useFinance.ts
+
+/types
+  next-auth-d.ts
+
+/screenshots
+
+/public/favicon.svg
+
+.env
+.env.local
+.gitignore
+```
+
 ---
 
 # Planning to expand MoneyMind with:
 
-* 🏦 Bank API integrations & Secure password protected statement upload
-* 📱 Mobile applications
-* 📈 Advanced ML-based forecasting
-* 🧾 Tax planning assistance
-* 🧠 Deeper personalized coaching
-* 🌍 Multi-country financial adaptation
-* 💬 Voice-based financial assistant
-* 📊 Advanced analytics & investment insights
-* 💬 Adding User feedback form in the app itself
+- 🏦 Bank API integrations & Secure password protected statement upload
+- 📱 Mobile applications
+- 📈 Advanced ML-based forecasting
+- 🧾 Tax planning assistance
+- 🧠 Deeper personalized coaching
+- 🌍 Multi-country financial adaptation
+- 💬 Voice-based financial assistant
+- 📊 Advanced analytics & investment insights
+- 💬 Adding User feedback form in the app itself
 
 # 🙌 Author
 
